@@ -37,9 +37,7 @@ if os.path.exists("static"):
 
 
 
-@app.get("/")
-def root():
-    return {"status": "ok", "service": "citylife-ai-backend"}
+# Moved below static files if needed, but static files with html=True handles /
 
 
 @app.get("/health")

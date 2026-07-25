@@ -1,6 +1,8 @@
 // Zentrale Spielkonfiguration.
 
-export const API_URL: string = (import.meta as any).env?.VITE_API_URL || "http://localhost:8000";
+// In Produktion nutzen wir relative Pfade, da Frontend und Backend auf demselben Host laufen.
+// VITE_API_URL kann für lokale Entwicklung weiterhin gesetzt werden.
+export const API_URL: string = (import.meta as any).env?.VITE_API_URL || "";
 
 // Ursprung für die (sehr einfache) äquirektangulare Projektion: Kröpcke, Hannover.
 export const MAP_ORIGIN = { lat: 52.3759, lon: 9.732 };

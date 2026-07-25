@@ -1,0 +1,50 @@
+{
+  "chapters": [
+    {
+      "id": "chapter_01",
+      "order": 1,
+      "unlock_xp": 0,
+      "title": "Ankunft am Kröpcke",
+      "intro": "Du steigst am Hauptbahnhof Hannover aus dem Zug. In der Tasche: ein altes Kuvert deiner Großtante, die dir ein halb verfallenes Mehrfamilienhaus in der List vermacht hat. Ein Brief liegt bei - unterschrieben nur mit 'M.' - der vor 'Leuten warnt, die das Haus schon lange haben wollen'.",
+      "cliffhanger": "Als du das erste Mal den Schlüssel im Schloss der Haustür drehst, liegt ein frisch getipptes Angebot eines anonymen Käufers auf der Fußmatte - datiert auf heute.",
+      "mission_chain": ["m01_hauptbahnhof_ankunft", "m01_kroepcke_erkunden", "m01_haus_besichtigen"]
+    },
+    {
+      "id": "chapter_02",
+      "order": 2,
+      "unlock_xp": 150,
+      "title": "Der anonyme Käufer",
+      "intro": "Ein Immobilienmakler namens Herr Voss taucht auf und bietet dir das Dreifache des Marktwerts für das Haus - unter der Bedingung, sofort zu unterschreiben. Deine Nachbarin Frau Ilkin warnt dich: 'Das Haus hat einen Handwerksbetrieb im Erdgeschoss, der seit 40 Jahren dort ist. Wenn du verkaufst, ist er weg.'",
+      "cliffhanger": "In den Bauunterlagen im Keller findest du einen Stadtplan mit rot markierten Grundstücken - dein Haus ist eines von sieben. Alle liegen entlang einer Linie, die genau zur neuen Stadtbahntrasse passt.",
+      "mission_chain": ["m02_voss_treffen", "m02_ilkin_befragen", "m02_keller_durchsuchen"]
+    },
+    {
+      "id": "chapter_03",
+      "order": 3,
+      "unlock_xp": 400,
+      "title": "Die sieben Grundstücke",
+      "intro": "Du beginnst zu verstehen: jemand kauft gezielt Grundstücke entlang einer geplanten Trasse auf, bevor die Pläne öffentlich sind. Um mitzuhalten, brauchst du selbst Kapital - Zeit, ins Immobiliengeschäft, den Lieferdienst und den Taxibetrieb einzusteigen.",
+      "cliffhanger": "Beim Sanieren deckst du im Erdgeschoss eine zugemauerte Tür auf. Dahinter: ein zweiter, viel älterer Grundbucheintrag - auf einen Namen, den du aus dem Brief deiner Großtante kennst.",
+      "mission_chain": ["m03_erste_sanierung", "m03_taxi_auftraege", "m03_zugemauerte_tuer"]
+    },
+    {
+      "id": "chapter_04",
+      "order": 4,
+      "unlock_xp": 750,
+      "title": "M.",
+      "intro": "'M.' war der Deckname deiner Großtante in einem Streit mit der Stadt in den 1980ern, als ein ganzes Viertel für eine Straße weichen sollte - und sie es verhinderte. Jetzt versucht offenbar dieselbe Investorengruppe unter neuem Namen dasselbe Projekt.",
+      "cliffhanger": "Herr Voss bietet dir diesmal keinen Kauf mehr an, sondern eine Stelle 'auf der richtigen Seite' - als Mitarbeiterin/Mitarbeiter, die/der bei den restlichen sechs Grundstücken 'hilft, Eigentümer zu überzeugen'.",
+      "mission_chain": ["m04_grosstante_akten", "m04_viertel_befragen", "m04_voss_angebot"]
+    },
+    {
+      "id": "chapter_05",
+      "order": 5,
+      "unlock_xp": 1200,
+      "title": "Die Entscheidung",
+      "intro": "Du musst dich entscheiden: das Netzwerk der Nachbarschaft stärken und die restlichen Eigentümer organisieren - oder das Angebot annehmen und selbst zur Investorenseite wechseln. Beide Wege verändern, wie sich Hannover für dich in den kommenden Kapiteln entwickelt.",
+      "cliffhanger": "Was auch immer du wählst - Kapitel 6 beginnt mit den Konsequenzen deiner Entscheidung, sichtbar in echten Veränderungen an der Kartenoberfläche (development_level, citizen_mood).",
+      "mission_chain": ["m05_nachbarschaft_organisieren", "m05_investoren_gegenangebot"]
+    }
+  ],
+  "note_for_developers": "Kapitel 6-12 sind in docs/STORY_BIBLE.md skizziert, aber noch nicht als JSON ausformuliert. Struktur ist absichtlich simpel (id, unlock_xp, intro, cliffhanger, mission_chain), damit der Story Agent (siehe ROADMAP Phase 5) später eigene Kapitel im selben Format generieren kann."
+}

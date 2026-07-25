@@ -1,0 +1,53 @@
+{
+  "meta": {
+    "note": "Handkuratiertes, geografisch angenähertes Straßen-/POI-Netz für Hannover-Zentrum. KEIN echter OSM-Export - siehe backend/app/tools/osm_import.py für die geplante echte Import-Pipeline.",
+    "origin_lat": 52.3759,
+    "origin_lon": 9.7320
+  },
+  "roads": {
+    "type": "FeatureCollection",
+    "features": [
+      { "type": "Feature", "properties": { "name": "Bahnhofstraße", "kind": "primary" },
+        "geometry": { "type": "LineString", "coordinates": [[9.7386, 52.3766], [9.7392, 52.3748], [9.7397, 52.3730]] } },
+      { "type": "Feature", "properties": { "name": "Georgstraße", "kind": "primary" },
+        "geometry": { "type": "LineString", "coordinates": [[9.7392, 52.3748], [9.7361, 52.3733], [9.7330, 52.3720]] } },
+      { "type": "Feature", "properties": { "name": "Karmarschstraße", "kind": "secondary" },
+        "geometry": { "type": "LineString", "coordinates": [[9.7392, 52.3748], [9.7411, 52.3730], [9.7411, 52.3701]] } },
+      { "type": "Feature", "properties": { "name": "Rathenaustraße", "kind": "secondary" },
+        "geometry": { "type": "LineString", "coordinates": [[9.7330, 52.3720], [9.7361, 52.3701], [9.7401, 52.3690]] } },
+      { "type": "Feature", "properties": { "name": "Friedrichswall", "kind": "primary" },
+        "geometry": { "type": "LineString", "coordinates": [[9.7361, 52.3701], [9.7361, 52.3665], [9.7370, 52.3630]] } },
+      { "type": "Feature", "properties": { "name": "Marienstraße", "kind": "secondary" },
+        "geometry": { "type": "LineString", "coordinates": [[9.7370, 52.3630], [9.7360, 52.3608], [9.7355, 52.3580]] } },
+      { "type": "Feature", "properties": { "name": "Königstraße", "kind": "secondary" },
+        "geometry": { "type": "LineString", "coordinates": [[9.7411, 52.3701], [9.7440, 52.3705], [9.7477, 52.3710]] } },
+      { "type": "Feature", "properties": { "name": "Lister Meile", "kind": "primary" },
+        "geometry": { "type": "LineString", "coordinates": [[9.7392, 52.3748], [9.7430, 52.3790], [9.7477, 52.3838]] } },
+      { "type": "Feature", "properties": { "name": "Podbielskistraße", "kind": "secondary" },
+        "geometry": { "type": "LineString", "coordinates": [[9.7477, 52.3838], [9.7550, 52.3830], [9.7601, 52.3811]] } },
+      { "type": "Feature", "properties": { "name": "Hamburger Allee", "kind": "secondary" },
+        "geometry": { "type": "LineString", "coordinates": [[9.7386, 52.3766], [9.7440, 52.3780], [9.7477, 52.3800]] } },
+      { "type": "Feature", "properties": { "name": "Steintorplatz-Zufahrt", "kind": "tertiary" },
+        "geometry": { "type": "LineString", "coordinates": [[9.7392, 52.3748], [9.7440, 52.3740], [9.7477, 52.3737]] } },
+      { "type": "Feature", "properties": { "name": "Arthur-Menge-Ufer", "kind": "tertiary" },
+        "geometry": { "type": "LineString", "coordinates": [[9.7355, 52.3608], [9.7300, 52.3590], [9.7280, 52.3560]] } }
+    ]
+  },
+  "pois": {
+    "type": "FeatureCollection",
+    "features": [
+      { "type": "Feature", "properties": { "name": "Hauptbahnhof", "category": "transit" }, "geometry": { "type": "Point", "coordinates": [9.7386, 52.3766] } },
+      { "type": "Feature", "properties": { "name": "Kröpcke", "category": "landmark" }, "geometry": { "type": "Point", "coordinates": [9.7392, 52.3748] } },
+      { "type": "Feature", "properties": { "name": "Neues Rathaus", "category": "landmark" }, "geometry": { "type": "Point", "coordinates": [9.7361, 52.3665] } },
+      { "type": "Feature", "properties": { "name": "Maschsee", "category": "park" }, "geometry": { "type": "Point", "coordinates": [9.7355, 52.3608] } },
+      { "type": "Feature", "properties": { "name": "Eilenriede", "category": "park" }, "geometry": { "type": "Point", "coordinates": [9.7601, 52.3811] } },
+      { "type": "Feature", "properties": { "name": "Lister Meile", "category": "shopping" }, "geometry": { "type": "Point", "coordinates": [9.7477, 52.3838] } },
+      { "type": "Feature", "properties": { "name": "Steintor", "category": "nightlife" }, "geometry": { "type": "Point", "coordinates": [9.7477, 52.3737] } },
+      { "type": "Feature", "properties": { "name": "Aegidientorplatz", "category": "transit" }, "geometry": { "type": "Point", "coordinates": [9.7411, 52.3701] } },
+      { "type": "Feature", "properties": { "name": "Cafe am Kröpcke", "category": "cafe" }, "geometry": { "type": "Point", "coordinates": [9.7397, 52.3745] } },
+      { "type": "Feature", "properties": { "name": "Tankstelle Hamburger Allee", "category": "fuel" }, "geometry": { "type": "Point", "coordinates": [9.7440, 52.3780] } },
+      { "type": "Feature", "properties": { "name": "Supermarkt List", "category": "shop" }, "geometry": { "type": "Point", "coordinates": [9.7500, 52.3820] } },
+      { "type": "Feature", "properties": { "name": "MHH-Zufahrt (Richtung)", "category": "hospital" }, "geometry": { "type": "Point", "coordinates": [9.7601, 52.3860] } }
+    ]
+  }
+}

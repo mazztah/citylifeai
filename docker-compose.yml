@@ -1,0 +1,45 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: citylife
+      POSTGRES_PASSWORD: citylife
+      POSTGRES_DB: citylife
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg2://citylife:citylife@db:5432/citylife
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      ENVIRONMENT: production
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+  frontend:
+    build: ./frontend
+    environment:
+      VITE_API_URL: http://localhost:8000
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+  telegram-bot:
+    build: ./telegram-bot
+    environment:
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      MINI_APP_URL: ${MINI_APP_URL:-http://localhost:5173}
+      BACKEND_URL: http://backend:8000
+    depends_on:
+      - backend
+
+volumes:
+  db_data:

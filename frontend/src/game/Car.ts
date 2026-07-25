@@ -132,15 +132,8 @@ export class Car {
 
   private updateDamageVisuals() {
     const c = this.collisionCount;
-    // Karosserie dunkler / rötlicher
+    // Karosserie dunkler mit steigendem Schaden
     if (c >= 2) {
-      this.bodyRect.setFillStyle(Phaser.Display.Color.Interpolate.ColorWithColor(
-        { r: 255, g: 210, b: 63 },
-        { r: 80, g: 40, b: 30 },
-        10,
-        c
-      ) as any);
-      // fallback simple darken
       const t = c / 10;
       const r = Math.floor(255 * (1 - t * 0.6));
       const g = Math.floor(210 * (1 - t * 0.7));
@@ -163,7 +156,6 @@ export class Car {
       this.smokeEmitter.setDepth(21);
     }
     if (this.smokeEmitter) {
-      // Rauch intensiver bis 10
       const intensity = Math.min(1, (c - 3) / 7);
       this.smokeEmitter.setFrequency(Math.max(25, 90 - intensity * 70));
       this.smokeEmitter.setQuantity(1 + Math.floor(intensity * 3));

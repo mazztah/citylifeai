@@ -55,9 +55,18 @@ export class RoadGraph {
   nearestRoadPoint(x: number, y: number): { x: number; y: number; distance: number } {
     let best = { x, y, distance: Infinity };
     for (const road of this.roads) {
-      for (const p of road.points) {
-        const d = Math.hypot(p.x - x, p.y - y);
-        if (d < best.distance) best = { x: p.x, y: p.y, distance: d };
+      for (let i = 0; i < road.points.length - 1; i++) {
+        const a = road.points[i];
+        const b = road.points[i + 1];
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const len2 = dx * dx + dy * dy || 1;
+        let t = ((x - a.x) * dx + (y - a.y) * dy) / len2;
+        t = Math.max(0, Math.min(1, t));
+        const px = a.x + t * dx;
+        const py = a.y + t * dy;
+        const d = Math.hypot(px - x, py - y);
+        if (d < best.distance) best = { x: px, y: py, distance: d };
       }
     }
     return best;

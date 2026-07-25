@@ -48,7 +48,7 @@ export class UIScene extends Phaser.Scene {
 
     // OSM-Attribution (Pflicht bei Nutzung der Rasterkacheln)
     this.add
-      .text(this.scale.width - 12, 10, "© OpenStreetMap", {
+      .text(this.scale.width - 12, 10, "© OSM · CARTO", {
         fontSize: "10px",
         color: "#a0a8b8",
         backgroundColor: "#00000055",

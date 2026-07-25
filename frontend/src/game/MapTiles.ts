@@ -1,49 +1,46 @@
 import Phaser from "phaser";
-import { lonLatToWorld, MAP_ORIGIN, PIXELS_PER_METER } from "../config";
+import {
+  lonLatToWorld,
+  lonLatToTile,
+  tileToLonLatBounds,
+  MAP_TILE_ZOOM,
+} from "../config";
 
 /**
- * Lädt OpenStreetMap-Rasterkacheln (Standard-Style) als Hintergrund unter dem
- * Straßengraphen. Dadurch sieht die Spielwelt aus wie die echte Hannover-Karte,
- * während Fahrphysik und Missionen weiter auf dem Vektor-Straßennetz basieren.
+ * OSM-Rasterkacheln im selben Web-Mercator-Raum wie die Straßenvektoren.
+ * Jede Kachel wird über ihre lon/lat-Ecken → lonLatToWorld platziert
+ * (gleiche Funktion wie RoadGraph) → keine Verschiebung.
  *
- * Tile-URL: https://tile.openstreetmap.org/{z}/{x}/{y}.png
- * Nutzung nur in moderatem Umfang (OSM Tile Usage Policy). Attribution im HUD.
+ * Bessere Optik: Zoom 16 + Carto "Voyager" (freundlicher, lesbarer als Standard-OSM).
+ * Fallback: tile.openstreetmap.org
  */
-const METERS_PER_DEGREE_LAT = 111_320;
-const METERS_PER_DEGREE_LON = 111_320 * Math.cos((MAP_ORIGIN.lat * Math.PI) / 180);
+export type TileStyle = "voyager" | "osm" | "positron";
 
-export function lonLatToTile(lon: number, lat: number, zoom: number): { x: number; y: number } {
-  const n = Math.pow(2, zoom);
-  const x = Math.floor(((lon + 180) / 360) * n);
-  const latRad = (lat * Math.PI) / 180;
-  const y = Math.floor(((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) * n);
-  return { x, y };
-}
-
-export function tileToLonLatBounds(tx: number, ty: number, zoom: number) {
-  const n = Math.pow(2, zoom);
-  const west = (tx / n) * 360 - 180;
-  const east = ((tx + 1) / n) * 360 - 180;
-  const north = (Math.atan(Math.sinh(Math.PI * (1 - (2 * ty) / n))) * 180) / Math.PI;
-  const south = (Math.atan(Math.sinh(Math.PI * (1 - (2 * (ty + 1)) / n))) * 180) / Math.PI;
-  return { west, south, east, north };
-}
+const TILE_URLS: Record<TileStyle, (z: number, x: number, y: number) => string> = {
+  // CartoCDN – klar, modern, gut für Spiele-Overlay
+  voyager: (z, x, y) =>
+    `https://a.basemaps.cartocdn.com/rastertiles/voyager/${z}/${x}/${y}@2x.png`,
+  positron: (z, x, y) =>
+    `https://a.basemaps.cartocdn.com/light_all/${z}/${x}/${y}@2x.png`,
+  osm: (z, x, y) => `https://tile.openstreetmap.org/${z}/${x}/${y}.png`,
+};
 
 export class MapTiles {
   private sprites: Phaser.GameObjects.Image[] = [];
   private loadedKeys = new Set<string>();
   readonly zoom: number;
+  private style: TileStyle;
 
   constructor(
     private scene: Phaser.Scene,
-    zoom = 15,
-    /** BBox in lon/lat der spielbaren Region */
-    private bbox = { south: 52.355, west: 9.722, north: 52.390, east: 9.768 }
+    zoom = MAP_TILE_ZOOM,
+    private bbox = { south: 52.355, west: 9.722, north: 52.390, east: 9.768 },
+    style: TileStyle = "voyager"
   ) {
     this.zoom = zoom;
+    this.style = style;
   }
 
-  /** Registriert alle benötigten Kacheln im Phaser-Loader (vor create / in preload). */
   queueLoad() {
     const z = this.zoom;
     const tl = lonLatToTile(this.bbox.west, this.bbox.north, z);
@@ -52,47 +49,41 @@ export class MapTiles {
     const maxX = Math.max(tl.x, br.x);
     const minY = Math.min(tl.y, br.y);
     const maxY = Math.max(tl.y, br.y);
+    const urlFn = TILE_URLS[this.style];
 
     for (let x = minX; x <= maxX; x++) {
       for (let y = minY; y <= maxY; y++) {
-        const key = `osm_${z}_${x}_${y}`;
+        const key = `map_${this.style}_${z}_${x}_${y}`;
         if (this.loadedKeys.has(key)) continue;
         this.loadedKeys.add(key);
-        const url = `https://tile.openstreetmap.org/${z}/${x}/${y}.png`;
-        this.scene.load.image(key, url);
+        this.scene.load.image(key, urlFn(z, x, y));
       }
     }
   }
 
-  /**
-   * Platziert geladene Kacheln in Weltkoordinaten.
-   * Depth niedrig, damit Straßen und Auto darüber liegen.
-   */
   place() {
     const z = this.zoom;
     for (const key of this.loadedKeys) {
       if (!this.scene.textures.exists(key)) continue;
       const parts = key.split("_");
-      const tx = parseInt(parts[2], 10);
-      const ty = parseInt(parts[3], 10);
+      // map_style_z_x_y  (style can be one word)
+      const tx = parseInt(parts[parts.length - 2], 10);
+      const ty = parseInt(parts[parts.length - 1], 10);
       const b = tileToLonLatBounds(tx, ty, z);
 
-      const topLeft = lonLatToWorld(b.west, b.north);
-      const bottomRight = lonLatToWorld(b.east, b.south);
-      const width = bottomRight.x - topLeft.x;
-      const height = bottomRight.y - topLeft.y;
+      // NW-Ecke und SE-Ecke in Weltpixel – identische Projektion wie Straßen
+      const nw = lonLatToWorld(b.west, b.north);
+      const se = lonLatToWorld(b.east, b.south);
+      const width = se.x - nw.x;
+      const height = se.y - nw.y;
 
       const img = this.scene.add
-        .image(topLeft.x, topLeft.y, key)
+        .image(nw.x, nw.y, key)
         .setOrigin(0, 0)
-        .setDisplaySize(width, Math.abs(height))
+        .setDisplaySize(width, height)
         .setDepth(-100)
-        .setAlpha(0.92);
+        .setAlpha(1);
 
-      // Unser y wächst nach Süden (positiv), tile topLeft.y ist nördlich (kleiner/negativer)
-      if (height < 0) {
-        img.setPosition(topLeft.x, topLeft.y);
-      }
       this.sprites.push(img);
     }
   }
@@ -101,11 +92,4 @@ export class MapTiles {
     for (const s of this.sprites) s.destroy();
     this.sprites = [];
   }
-}
-
-/** Hilfsfunktion: ungefähre Kachelgröße in Weltpixeln bei gegebenem Zoom (Hannover). */
-export function approxTileSizePx(zoom: number): number {
-  const n = Math.pow(2, zoom);
-  const metersPerTile = (40075016.686 * Math.cos((MAP_ORIGIN.lat * Math.PI) / 180)) / n;
-  return metersPerTile * PIXELS_PER_METER;
 }

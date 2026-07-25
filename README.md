@@ -127,3 +127,32 @@ einen Cliffhanger fürs nächste Kapitel. Das Frontend zeigt neue Kapitel als Di
 (`StoryDialog.ts`) an, sobald `/story/current` ein neues Kapitel meldet. Die vollständige
 Story-Bibel (Figuren, Spannungsbogen über 12 geplante Kapitel) steht in
 `docs/STORY_BIBLE.md`.
+
+## Straßen exakt auf der Basemap (Fly.io / Produktion)
+
+Die handkuratierte Fallback-Karte weicht von den echten OSM-Tiles ab. Beim
+**Docker-/Fly-Build** werden echte OpenStreetMap-Daten geladen und ins Frontend
+eingebacken:
+
+```bash
+# Neu deployen – OSM-Stage muss neu gebaut werden
+fly deploy --no-cache
+```
+
+Im Build-Log solltest du sehen:
+```
+OSM status: ok {'source': 'openstreetmap', 'road_count': ..., ...}
+Echtes OSM-GeoJSON eingebunden
+```
+
+Lokal vor dem Push (empfohlen, damit auch ohne Build-Netzwerk die Daten stimmen):
+
+```bash
+./scripts/fetch_hannover_osm.sh
+git add frontend/src/data/hannover_center.geojson
+git commit -m "echte OSM-Straßen für Hannover"
+```
+
+Danach liegen die Vektorstraßen auf denselben Koordinaten wie die Carto/OSM-Kacheln;
+das Auto darf nur auf diesen Straßen (und Parks/Plätzen) fahren, nicht durch Gebäude.
+

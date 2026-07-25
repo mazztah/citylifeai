@@ -156,26 +156,34 @@ def fetch_overpass(
     query = overpass_query(south, west, north, east, timeout=max(30, timeout - 20))
     endpoints = [endpoint] if endpoint else ENDPOINTS
     last_err: Exception | None = None
+    body = urllib.parse.urlencode({"data": query}).encode("utf-8")
     for ep in endpoints:
         if not ep:
             continue
-        url = f"{ep}?data={urllib.parse.quote(query)}"
-        req = urllib.request.Request(
-            url,
-            headers={"User-Agent": "CityLifeAI/0.2 (educational; contact: local-dev)"},
-        )
-        try:
-            print(f"  Overpass: {ep} …", file=sys.stderr)
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
-            n = len(data.get("elements", []))
-            print(f"  → {n} Elemente", file=sys.stderr)
-            if n == 0:
-                raise RuntimeError("leere Antwort")
-            return data
-        except Exception as exc:  # noqa: BLE001
-            last_err = exc
-            print(f"  fehlgeschlagen: {exc}", file=sys.stderr)
+        for attempt in range(1, 4):
+            req = urllib.request.Request(
+                ep,
+                data=body,
+                method="POST",
+                headers={
+                    "User-Agent": "CityLifeAI/0.2 (educational; docker-build)",
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+            )
+            try:
+                print(f"  Overpass: {ep} (Versuch {attempt}/3) …", file=sys.stderr)
+                with urllib.request.urlopen(req, timeout=timeout) as resp:
+                    data = json.loads(resp.read().decode("utf-8"))
+                n = len(data.get("elements", []))
+                print(f"  → {n} Elemente", file=sys.stderr)
+                if n == 0:
+                    raise RuntimeError("leere Antwort")
+                return data
+            except Exception as exc:  # noqa: BLE001
+                last_err = exc
+                print(f"  fehlgeschlagen: {exc}", file=sys.stderr)
+                import time
+                time.sleep(2 * attempt)
     raise RuntimeError(f"Alle Overpass-Endpoints fehlgeschlagen: {last_err}")
 
 

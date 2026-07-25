@@ -1,0 +1,11 @@
+app = "citylifeai-bot"
+primary_region = "fra"
+
+[build]
+  dockerfile = "Dockerfile.bot"
+
+# The bot doesn't need an HTTP service as it uses long polling
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1

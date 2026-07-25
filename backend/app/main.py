@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+import os
 
 from .database import Base, engine
 from .routers import players, missions, story, world, leaderboard
@@ -28,6 +30,11 @@ app.include_router(missions.router)
 app.include_router(story.router)
 app.include_router(world.router)
 app.include_router(leaderboard.router)
+
+# Serve static files from the 'static' directory if it exists
+if os.path.exists("static"):
+    app.mount("/", StaticFiles(directory="static", html=True), name="static")
+
 
 
 @app.get("/")

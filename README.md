@@ -95,7 +95,7 @@ Jeder Spieler hat einen eigenen `CityState`-Datensatz pro Stadt. Der `world_engi
 und Missionsschwierigkeit verändern sich. Dadurch sieht Hannover für Spieler A nach
 zwei Wochen anders aus als für Spieler B – abhängig davon, welche Immobilien gekauft,
 welche Missionen erfüllt und welche Entscheidungen getroffen wurden. Details in
-`docs/ARCHITECTURE.md` Abschnitt "World Evolution". yeas
+`docs/ARCHITECTURE.md` Abschnitt "World Evolution".
 
 ## Story-System ("roter Faden")
 

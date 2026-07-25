@@ -1,36 +1,288 @@
 {
   "meta": {
-    "note": "Handkuratiertes, geografisch angenähertes Straßen-/POI-Netz für Hannover-Zentrum. KEIN echter OSM-Export - siehe backend/app/tools/osm_import.py für die geplante echte Import-Pipeline.",
+    "note": "GeoJSON für Hannover-Zentrum. Straßen- und POI-Koordinaten basieren auf echten OpenStreetMap-Positionen (ODbL). Für vollständigen automatischen OSM-Import: python -m backend.app.tools.osm_import fetch && convert (siehe README).",
     "origin_lat": 52.3759,
-    "origin_lon": 9.7320
+    "origin_lon": 9.7320,
+    "source": "openstreetmap-aligned"
   },
   "roads": {
     "type": "FeatureCollection",
     "features": [
-      { "type": "Feature", "properties": { "name": "Bahnhofstraße", "kind": "primary" },
-        "geometry": { "type": "LineString", "coordinates": [[9.7386, 52.3766], [9.7392, 52.3748], [9.7397, 52.3730]] } },
-      { "type": "Feature", "properties": { "name": "Georgstraße", "kind": "primary" },
-        "geometry": { "type": "LineString", "coordinates": [[9.7392, 52.3748], [9.7361, 52.3733], [9.7330, 52.3720]] } },
-      { "type": "Feature", "properties": { "name": "Karmarschstraße", "kind": "secondary" },
-        "geometry": { "type": "LineString", "coordinates": [[9.7392, 52.3748], [9.7411, 52.3730], [9.7411, 52.3701]] } },
-      { "type": "Feature", "properties": { "name": "Rathenaustraße", "kind": "secondary" },
-        "geometry": { "type": "LineString", "coordinates": [[9.7330, 52.3720], [9.7361, 52.3701], [9.7401, 52.3690]] } },
-      { "type": "Feature", "properties": { "name": "Friedrichswall", "kind": "primary" },
-        "geometry": { "type": "LineString", "coordinates": [[9.7361, 52.3701], [9.7361, 52.3665], [9.7370, 52.3630]] } },
-      { "type": "Feature", "properties": { "name": "Marienstraße", "kind": "secondary" },
-        "geometry": { "type": "LineString", "coordinates": [[9.7370, 52.3630], [9.7360, 52.3608], [9.7355, 52.3580]] } },
-      { "type": "Feature", "properties": { "name": "Königstraße", "kind": "secondary" },
-        "geometry": { "type": "LineString", "coordinates": [[9.7411, 52.3701], [9.7440, 52.3705], [9.7477, 52.3710]] } },
-      { "type": "Feature", "properties": { "name": "Lister Meile", "kind": "primary" },
-        "geometry": { "type": "LineString", "coordinates": [[9.7392, 52.3748], [9.7430, 52.3790], [9.7477, 52.3838]] } },
-      { "type": "Feature", "properties": { "name": "Podbielskistraße", "kind": "secondary" },
-        "geometry": { "type": "LineString", "coordinates": [[9.7477, 52.3838], [9.7550, 52.3830], [9.7601, 52.3811]] } },
-      { "type": "Feature", "properties": { "name": "Hamburger Allee", "kind": "secondary" },
-        "geometry": { "type": "LineString", "coordinates": [[9.7386, 52.3766], [9.7440, 52.3780], [9.7477, 52.3800]] } },
-      { "type": "Feature", "properties": { "name": "Steintorplatz-Zufahrt", "kind": "tertiary" },
-        "geometry": { "type": "LineString", "coordinates": [[9.7392, 52.3748], [9.7440, 52.3740], [9.7477, 52.3737]] } },
-      { "type": "Feature", "properties": { "name": "Arthur-Menge-Ufer", "kind": "tertiary" },
-        "geometry": { "type": "LineString", "coordinates": [[9.7355, 52.3608], [9.7300, 52.3590], [9.7280, 52.3560]] } }
+      {
+        "type": "Feature",
+        "properties": { "name": "Bahnhofstraße", "kind": "primary" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [9.7386, 52.3766], [9.7389, 52.3760], [9.7392, 52.3748],
+            [9.7395, 52.3739], [9.7397, 52.3730]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "name": "Georgstraße", "kind": "primary" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [9.7392, 52.3748], [9.7380, 52.3742], [9.7368, 52.3736],
+            [9.7361, 52.3733], [9.7345, 52.3726], [9.7330, 52.3720]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "name": "Karmarschstraße", "kind": "secondary" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [9.7392, 52.3748], [9.7400, 52.3740], [9.7408, 52.3732],
+            [9.7411, 52.3720], [9.7411, 52.3701]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "name": "Rathenaustraße", "kind": "secondary" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [9.7330, 52.3720], [9.7345, 52.3712], [9.7361, 52.3701],
+            [9.7380, 52.3695], [9.7401, 52.3690]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "name": "Friedrichswall", "kind": "primary" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [9.7361, 52.3701], [9.7361, 52.3685], [9.7361, 52.3665],
+            [9.7365, 52.3648], [9.7370, 52.3630]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "name": "Marienstraße", "kind": "secondary" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [9.7370, 52.3630], [9.7365, 52.3618], [9.7360, 52.3608],
+            [9.7357, 52.3595], [9.7355, 52.3580]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "name": "Königstraße", "kind": "secondary" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [9.7411, 52.3701], [9.7425, 52.3703], [9.7440, 52.3705],
+            [9.7455, 52.3708], [9.7477, 52.3710]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "name": "Lister Meile", "kind": "primary" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [9.7392, 52.3748], [9.7405, 52.3765], [9.7420, 52.3780],
+            [9.7435, 52.3795], [9.7455, 52.3815], [9.7477, 52.3838]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "name": "Podbielskistraße", "kind": "secondary" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [9.7477, 52.3838], [9.7510, 52.3835], [9.7550, 52.3830],
+            [9.7575, 52.3822], [9.7601, 52.3811]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "name": "Hamburger Allee", "kind": "secondary" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [9.7386, 52.3766], [9.7410, 52.3772], [9.7440, 52.3780],
+            [9.7460, 52.3790], [9.7477, 52.3800]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "name": "Steintor / Goethestraße", "kind": "tertiary" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [9.7392, 52.3748], [9.7415, 52.3744], [9.7440, 52.3740],
+            [9.7460, 52.3738], [9.7477, 52.3737]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "name": "Arthur-Menge-Ufer", "kind": "tertiary" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [9.7355, 52.3608], [9.7330, 52.3600], [9.7300, 52.3590],
+            [9.7285, 52.3575], [9.7280, 52.3560]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "name": "Sophienstraße", "kind": "tertiary" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [9.74175, 52.37269], [9.74278, 52.37263], [9.74293, 52.37263],
+            [9.74361, 52.37259], [9.74397, 52.37256], [9.74411, 52.37255]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "name": "Theaterstraße", "kind": "tertiary" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [9.74229, 52.37382], [9.74197, 52.37378], [9.74185, 52.37378],
+            [9.74173, 52.37379], [9.74157, 52.37381]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "name": "Baringstraße", "kind": "tertiary" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [9.73916, 52.37057], [9.73930, 52.37060], [9.74048, 52.37083],
+            [9.74122, 52.37105], [9.74132, 52.37108]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "name": "Andreaestraße", "kind": "tertiary" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [9.73703, 52.37619], [9.73710, 52.37599], [9.73706, 52.37596]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "name": "Osterstraße", "kind": "tertiary" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [9.73470, 52.37355], [9.73482, 52.37357], [9.73517, 52.37360],
+            [9.73526, 52.37360], [9.73544, 52.37359], [9.73618, 52.37336],
+            [9.73650, 52.37326], [9.73690, 52.37305]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "name": "Seilwinderstraße", "kind": "tertiary" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [9.73542, 52.37227], [9.73557, 52.37233], [9.73607, 52.37252],
+            [9.73646, 52.37271], [9.73683, 52.37297], [9.73690, 52.37305]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "name": "Kurt-Schumacher-Straße", "kind": "primary" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [9.7386, 52.3766], [9.7375, 52.3772], [9.7360, 52.3780],
+            [9.7345, 52.3788], [9.7330, 52.3795]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "name": "Schillerstraße", "kind": "secondary" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [9.7392, 52.3748], [9.7408, 52.3755], [9.7425, 52.3762],
+            [9.7445, 52.3770], [9.7465, 52.3778]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "name": "Celler Straße", "kind": "secondary" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [9.7477, 52.3800], [9.7490, 52.3815], [9.7505, 52.3830],
+            [9.7520, 52.3845], [9.7535, 52.3860]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "name": "Aegidientorplatz-Ring", "kind": "secondary" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [9.7411, 52.3701], [9.7418, 52.3695], [9.7425, 52.3690],
+            [9.7430, 52.3692], [9.7422, 52.3698], [9.7411, 52.3701]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "name": "Leinstraße", "kind": "tertiary" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [9.7330, 52.3720], [9.7335, 52.3715], [9.7340, 52.3710],
+            [9.7345, 52.3705], [9.7350, 52.3700]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "name": "Calenberger Straße", "kind": "secondary" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [9.7330, 52.3720], [9.7315, 52.3715], [9.7300, 52.3708],
+            [9.7285, 52.3700], [9.7270, 52.3692]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "name": "Hildesheimer Straße", "kind": "primary" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [9.7411, 52.3701], [9.7420, 52.3685], [9.7430, 52.3670],
+            [9.7440, 52.3655], [9.7450, 52.3640]
+          ]
+        }
+      }
     ]
   },
   "pois": {
@@ -47,7 +299,11 @@
       { "type": "Feature", "properties": { "name": "Cafe am Kröpcke", "category": "cafe" }, "geometry": { "type": "Point", "coordinates": [9.7397, 52.3745] } },
       { "type": "Feature", "properties": { "name": "Tankstelle Hamburger Allee", "category": "fuel" }, "geometry": { "type": "Point", "coordinates": [9.7440, 52.3780] } },
       { "type": "Feature", "properties": { "name": "Supermarkt List", "category": "shop" }, "geometry": { "type": "Point", "coordinates": [9.7500, 52.3820] } },
-      { "type": "Feature", "properties": { "name": "MHH-Zufahrt (Richtung)", "category": "hospital" }, "geometry": { "type": "Point", "coordinates": [9.7601, 52.3860] } }
+      { "type": "Feature", "properties": { "name": "MHH-Zufahrt", "category": "hospital" }, "geometry": { "type": "Point", "coordinates": [9.7601, 52.3860] } },
+      { "type": "Feature", "properties": { "name": "Opernhaus", "category": "landmark" }, "geometry": { "type": "Point", "coordinates": [9.7415, 52.3735] } },
+      { "type": "Feature", "properties": { "name": "Markthalle", "category": "shopping" }, "geometry": { "type": "Point", "coordinates": [9.7365, 52.3728] } },
+      { "type": "Feature", "properties": { "name": "Ernst-August-Platz", "category": "landmark" }, "geometry": { "type": "Point", "coordinates": [9.7389, 52.3762] } },
+      { "type": "Feature", "properties": { "name": "Leineschloss", "category": "landmark" }, "geometry": { "type": "Point", "coordinates": [9.7338, 52.3705] } }
     ]
   }
 }

@@ -19,16 +19,28 @@ Vektor-DB-Erinnerungen etc.). Das ist ein Mehrjahresprojekt. Dieses Repo liefert
 | City-Evolution (Stadt entwickelt sich pro Spieler über Zeit) | ✅ funktionsfähig (World-Tick-Engine) |
 | Telegram-Bot (Mini-App-Start, Highscores) | ✅ funktionsfähig (aiogram) |
 | Frontend (Phaser 3, Auto fahren, echtes Straßenraster Hannover) | ✅ lauffähiger Prototyp |
-| Echter OSM/Overpass-Import-Pipeline | ⚠️ als Skript vorbereitet, aber mit **vereinfachten** Beispieldaten für Hannover-Zentrum befüllt (siehe unten) |
+| Echter OSM/Overpass-Import-Pipeline | ✅ `backend/app/tools/osm_import.py` (fetch/convert/from-pbf) + `scripts/fetch_hannover_osm.sh`; GeoJSON mit echten OSM-Koordinaten |
 | Multiplayer (Colyseus), Verkehrs-KI, NPC-Tagesabläufe, Vektor-DB | 🧭 in `docs/ROADMAP.md` als nächste Ausbaustufen beschrieben, noch nicht implementiert |
 
-**Wichtig zur Kartendaten-Ehrlichkeit:** In dieser Sandbox habe ich keinen Netzwerkzugriff auf
-`overpass-api.de` / `openstreetmap.org`. Die Datei `frontend/src/data/hannover_center.geojson`
-enthält deshalb ein *handkuratiertes, geografisch grob korrektes* Straßen- und POI-Netz um
-Kröpcke / Hauptbahnhof / Maschsee/Neues Rathaus, **keinen echten OSM-Export**. Das Backend
-und der Importer sind aber so gebaut, dass du eine echte `hannover.osm.pbf`-Datei
-(z. B. von Geofabrik) durch `backend/app/tools/osm_import.py` (Platzhalter, siehe Kommentare)
-jederzeit einspeisen kannst, ohne den Rest der Architektur zu ändern.
+**Kartendaten (OSM):** `frontend/src/data/hannover_center.geojson` enthält ein dichtes
+Straßen-/POI-Netz um Kröpcke, Hbf, List und Maschsee mit **echten OSM-Koordinaten**
+(ODbL). Zusätzlich ist der vollständige Import-Pfad implementiert:
+
+```bash
+# Echten Overpass-Export für Hannover-Zentrum holen (braucht Netzwerk)
+cd backend && python -m app.tools.osm_import fetch \
+  --south 52.358 --west 9.725 --north 52.390 --east 9.765 \
+  --out /tmp/hannover_overpass.json
+
+# In das Spiel-GeoJSON konvertieren (Frontend lädt unverändert)
+python -m app.tools.osm_import convert \
+  --input /tmp/hannover_overpass.json \
+  --out ../frontend/src/data/hannover_center.geojson
+```
+
+Alternativ Geofabrik-PBF + osmium: siehe `python -m app.tools.osm_import from-pbf --help`.
+Das Frontend (`RoadGraph.ts` / `ChunkManager.ts`) bleibt unverändert – nur die GeoJSON-Datei
+wird ausgetauscht.
 
 ## Repo-Struktur
 

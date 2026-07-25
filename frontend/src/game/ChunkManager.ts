@@ -1,10 +1,16 @@
 import Phaser from "phaser";
 import { RoadGraph } from "./RoadGraph";
 
-const ROAD_COLORS: Record<string, number> = {
-  primary: 0x4a5568,
-  secondary: 0x3a4150,
-  tertiary: 0x2c3140,
+const ROAD_FILL: Record<string, number> = {
+  primary: 0x5a6270,
+  secondary: 0x4a5260,
+  tertiary: 0x3a4250,
+};
+
+const ROAD_EDGE: Record<string, number> = {
+  primary: 0x2a2e38,
+  secondary: 0x252830,
+  tertiary: 0x1e2228,
 };
 
 const POI_COLORS: Record<string, number> = {
@@ -20,54 +26,71 @@ const POI_COLORS: Record<string, number> = {
 };
 
 /**
- * Aktuell lädt und zeichnet der ChunkManager das gesamte (kleine) Hannover-
- * Zentrum auf einmal - für die Kartengröße dieses Prototyps ist echtes
- * Chunk-Streaming (Minecraft-artig, wie im Konzept beschrieben) nicht nötig.
- * Die Klasse ist aber bewusst so geschnitten, dass eine spätere Version pro
- * Grid-Zelle (z.B. 500m x 500m) nur den sichtbaren Ausschnitt aus dem Backend
- * nachlädt (`loadChunksAround(x, y, radiusPx)`), ohne den Aufrufer (WorldScene)
- * anzupassen.
+ * Zeichnet das OSM-basierte Straßennetz und POIs über den Karten-Tiles.
+ * Später: Chunk-Streaming für größere Städte (loadChunksAround).
  */
 export class ChunkManager {
   graph = new RoadGraph();
   private poiLabels: Phaser.GameObjects.Text[] = [];
+  private roadGraphics?: Phaser.GameObjects.Graphics;
 
   constructor(private scene: Phaser.Scene) {}
 
   renderAll() {
-    const graphics = this.scene.add.graphics();
+    // Straßen etwas transparent über den OSM-Tiles, damit die echte Karte durchscheint,
+    // die Fahrspur aber klar erkennbar bleibt.
+    const g = this.scene.add.graphics().setDepth(1);
+    this.roadGraphics = g;
 
     for (const road of this.graph.roads) {
-      const color = ROAD_COLORS[road.kind] ?? ROAD_COLORS.tertiary;
-      const width = road.kind === "primary" ? 10 : road.kind === "secondary" ? 7 : 5;
-      graphics.lineStyle(width, color, 1);
-      graphics.beginPath();
-      road.points.forEach((p, i) => (i === 0 ? graphics.moveTo(p.x, p.y) : graphics.lineTo(p.x, p.y)));
-      graphics.strokePath();
+      if (road.points.length < 2) continue;
+      const kind = road.kind in ROAD_FILL ? road.kind : "tertiary";
+      const outerW = kind === "primary" ? 16 : kind === "secondary" ? 12 : 9;
+      const innerW = kind === "primary" ? 12 : kind === "secondary" ? 9 : 6;
 
-      // Straßenmarkierung (Mittellinie), nur für größere Straßen
-      if (road.kind !== "tertiary") {
-        graphics.lineStyle(1, 0xf0c419, 0.6);
-        graphics.beginPath();
-        road.points.forEach((p, i) => (i === 0 ? graphics.moveTo(p.x, p.y) : graphics.lineTo(p.x, p.y)));
-        graphics.strokePath();
+      // Rand (Asphalt-Kante)
+      g.lineStyle(outerW, ROAD_EDGE[kind], 0.85);
+      g.beginPath();
+      road.points.forEach((p, i) => (i === 0 ? g.moveTo(p.x, p.y) : g.lineTo(p.x, p.y)));
+      g.strokePath();
+
+      // Fahrbahn
+      g.lineStyle(innerW, ROAD_FILL[kind], 0.75);
+      g.beginPath();
+      road.points.forEach((p, i) => (i === 0 ? g.moveTo(p.x, p.y) : g.lineTo(p.x, p.y)));
+      g.strokePath();
+
+      // Mittellinie
+      if (kind !== "tertiary") {
+        g.lineStyle(1.5, 0xf0c419, 0.7);
+        g.beginPath();
+        road.points.forEach((p, i) => (i === 0 ? g.moveTo(p.x, p.y) : g.lineTo(p.x, p.y)));
+        g.strokePath();
       }
     }
 
     for (const poi of this.graph.pois) {
       const color = POI_COLORS[poi.category] ?? 0xcccccc;
-      this.scene.add.circle(poi.x, poi.y, 6, color).setStrokeStyle(1, 0xffffff, 0.6);
+      this.scene.add
+        .circle(poi.x, poi.y, 7, color, 0.95)
+        .setStrokeStyle(2, 0xffffff, 0.8)
+        .setDepth(5);
       const label = this.scene.add
-        .text(poi.x, poi.y - 16, poi.name, { fontSize: "10px", color: "#c9ced9" })
-        .setOrigin(0.5);
+        .text(poi.x, poi.y - 18, poi.name, {
+          fontSize: "11px",
+          color: "#ffffff",
+          backgroundColor: "#00000099",
+          padding: { x: 4, y: 2 },
+        })
+        .setOrigin(0.5)
+        .setDepth(6);
       this.poiLabels.push(label);
     }
 
-    return graphics;
+    return g;
   }
 
-  /** Platzhalter für künftiges Streaming großer Karten (siehe Klassenkommentar oben). */
   loadChunksAround(_worldX: number, _worldY: number, _radiusPx: number) {
-    // no-op im aktuellen Prototyp - gesamte Karte ist bereits geladen
+    // no-op – gesamte Zentrumskarte ist geladen
   }
 }

@@ -20,7 +20,7 @@ export interface PoiPoint {
 }
 
 /**
- * Lädt das (aktuell handkuratierte, siehe README) Straßen-/POI-GeoJSON und
+ * Lädt das OSM-basierte Straßen-/POI-GeoJSON (siehe osm_import.py + MapTiles) und
  * rechnet alle Koordinaten einmalig in Pixel-Weltkoordinaten um. Für einen
  * echten OSM-Import würde nur diese Datei ausgetauscht - der Rest der Klasse
  * bleibt identisch (siehe backend/app/tools/osm_import.py für das Zielschema).

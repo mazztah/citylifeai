@@ -46,6 +46,16 @@ export class UIScene extends Phaser.Scene {
       })
       .setOrigin(1, 1);
 
+    // OSM-Attribution (Pflicht bei Nutzung der Rasterkacheln)
+    this.add
+      .text(this.scale.width - 12, 10, "© OpenStreetMap", {
+        fontSize: "10px",
+        color: "#a0a8b8",
+        backgroundColor: "#00000055",
+        padding: { x: 6, y: 3 },
+      })
+      .setOrigin(1, 0);
+
     world.events.on("player-updated", (p: Player) => this.renderPlayer(p));
     world.events.on("missions-updated", (missions: Mission[]) => this.renderMissions(missions));
     world.events.on("story-updated", (state: StoryState) =>

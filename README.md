@@ -42,6 +42,16 @@ Alternativ Geofabrik-PBF + osmium: siehe `python -m app.tools.osm_import from-pb
 Das Frontend (`RoadGraph.ts` / `ChunkManager.ts`) bleibt unverändert – nur die GeoJSON-Datei
 wird ausgetauscht.
 
+
+## Echte Karte im Spiel (OSM-Tiles + Straßennetz)
+
+Das Frontend lädt **OpenStreetMap-Rasterkacheln** als Hintergrund (echte Straßenoptik von Hannover)
+und zeichnet darüber das **Vektor-Straßennetz** aus `hannover_center.geojson` für Fahrphysik und Missionen.
+
+- Attribution: „© OpenStreetMap“ (rechts oben im HUD)
+- Voller Vektor-Export: `./scripts/fetch_hannover_osm.sh` (mit Internet)
+- Tiles brauchen zur Laufzeit Internetzugang zum Tile-Server
+
 ## Repo-Struktur
 
 ```

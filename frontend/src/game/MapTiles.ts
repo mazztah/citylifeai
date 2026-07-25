@@ -58,7 +58,7 @@ export class MapTiles {
       }
     }
 
-    const concurrency = 4;
+    const concurrency = 2;
     let next = 0;
     let inFlight = 0;
 

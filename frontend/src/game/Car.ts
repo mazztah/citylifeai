@@ -19,25 +19,26 @@ const VEHICLE_COLORS: Record<VehicleClass, { body: number; accent: number }> = {
 
 export type DrivableCheck = (x: number, y: number) => boolean;
 
-/**
- * Mehrschichtiges Top-Down-Fahrzeug: Schatten, Karosserie, Fenster, Räder, Lichter.
- * Optional: Kollisionsprüfung (Wandgleiten) über isDrivable-Callback.
- */
 export class Car {
   sprite: Phaser.GameObjects.Container;
   private speed = 0;
   private angle = 0;
-  private wheels: Phaser.GameObjects.Rectangle[] = [];
   private brakeLights: Phaser.GameObjects.Rectangle[] = [];
   private headLights: Phaser.GameObjects.Rectangle[] = [];
-  private shadow: Phaser.GameObjects.Ellipse;
+  private bodyRect: Phaser.GameObjects.Rectangle;
+  private smokeEmitter: Phaser.GameObjects.Particles.ParticleEmitter | null = null;
+  private sceneRef: Phaser.Scene;
 
-  private readonly maxSpeed: number;
+  private readonly maxSpeedBase: number;
   private readonly acceleration: number;
   private readonly brakingForce = 480;
   private readonly friction = 160;
   private readonly turnRateBase = 2.8;
   readonly vehicleClass: VehicleClass;
+
+  /** 0–10 Kollisionen; ab 4 Rauch, ab 10 total */
+  collisionCount = 0;
+  wrecked = false;
 
   constructor(
     scene: Phaser.Scene,
@@ -46,36 +47,30 @@ export class Car {
     vehicleClass: VehicleClass = "player",
     opts?: { maxSpeed?: number; acceleration?: number }
   ) {
+    this.sceneRef = scene;
     this.vehicleClass = vehicleClass;
     const colors = VEHICLE_COLORS[vehicleClass];
     const isSuv = vehicleClass === "suv" || vehicleClass === "delivery";
-    const w = isSuv ? 30 : 28;
-    const h = isSuv ? 16 : 14;
+    const w = isSuv ? 26 : 24;
+    const h = isSuv ? 14 : 12;
 
-    this.maxSpeed = opts?.maxSpeed ?? (vehicleClass === "player" ? 280 : 180);
-    this.acceleration = opts?.acceleration ?? (vehicleClass === "player" ? 280 : 160);
+    this.maxSpeedBase = opts?.maxSpeed ?? (vehicleClass === "player" ? 240 : 140);
+    this.acceleration = opts?.acceleration ?? (vehicleClass === "player" ? 260 : 140);
 
-    this.shadow = scene.add.ellipse(1, 3, w + 4, h + 2, 0x000000, 0.35);
+    const shadow = scene.add.ellipse(1, 3, w + 4, h + 2, 0x000000, 0.3);
+    const fl = scene.add.rectangle(-w * 0.28, -h * 0.55, 5, 3, 0x1a1a1a);
+    const fr = scene.add.rectangle(-w * 0.28, h * 0.55, 5, 3, 0x1a1a1a);
+    const rl = scene.add.rectangle(w * 0.28, -h * 0.55, 5, 3, 0x1a1a1a);
+    const rr = scene.add.rectangle(w * 0.28, h * 0.55, 5, 3, 0x1a1a1a);
 
-    const wheelColor = 0x1a1a1a;
-    const fl = scene.add.rectangle(-w * 0.28, -h * 0.55, 6, 3, wheelColor);
-    const fr = scene.add.rectangle(-w * 0.28, h * 0.55, 6, 3, wheelColor);
-    const rl = scene.add.rectangle(w * 0.28, -h * 0.55, 6, 3, wheelColor);
-    const rr = scene.add.rectangle(w * 0.28, h * 0.55, 6, 3, wheelColor);
-    this.wheels = [fl, fr, rl, rr];
-
-    const body = scene.add.rectangle(0, 0, w, h, colors.body).setStrokeStyle(1.5, 0x111111);
-    const roof = scene.add
-      .rectangle(1, 0, w * 0.42, h * 0.72, colors.accent)
-      .setAlpha(0.35);
-
+    this.bodyRect = scene.add.rectangle(0, 0, w, h, colors.body).setStrokeStyle(1, 0x111111);
+    const roof = scene.add.rectangle(1, 0, w * 0.42, h * 0.72, colors.accent).setAlpha(0.35);
     const windshield = scene.add.rectangle(-w * 0.22, 0, w * 0.22, h * 0.62, 0x81d4fa, 0.85);
     const rearWindow = scene.add.rectangle(w * 0.2, 0, w * 0.16, h * 0.55, 0x4fc3f7, 0.7);
 
     const hl1 = scene.add.rectangle(-w * 0.48, -h * 0.28, 3, 3, 0xfff9c4);
     const hl2 = scene.add.rectangle(-w * 0.48, h * 0.28, 3, 3, 0xfff9c4);
     this.headLights = [hl1, hl2];
-
     const bl1 = scene.add.rectangle(w * 0.48, -h * 0.28, 3, 3, 0xb71c1c);
     const bl2 = scene.add.rectangle(w * 0.48, h * 0.28, 3, 3, 0xb71c1c);
     this.brakeLights = [bl1, bl2];
@@ -90,9 +85,12 @@ export class Car {
     }
 
     this.sprite = scene.add.container(x, y, [
-      this.shadow,
-      ...this.wheels,
-      body,
+      shadow,
+      fl,
+      fr,
+      rl,
+      rr,
+      this.bodyRect,
       roof,
       windshield,
       rearWindow,
@@ -102,34 +100,139 @@ export class Car {
     ]);
     this.sprite.setSize(w, h);
     this.sprite.setDepth(20);
+
+    // Partikel-Textur einmalig
+    if (!scene.textures.exists("smoke_px")) {
+      const g = scene.make.graphics({ x: 0, y: 0 });
+      g.fillStyle(0x888888, 1);
+      g.fillCircle(4, 4, 4);
+      g.generateTexture("smoke_px", 8, 8);
+      g.destroy();
+    }
   }
 
-  /**
-   * Spieler-Update mit optionaler Kollision.
-   * Achsengetrenntes Wandgleiten: wenn der volle Schritt blockiert ist,
-   * wird X und Y einzeln versucht – dadurch gleitet man an Gebäuden entlang.
-   */
+  get maxSpeed() {
+    // Schaden drosselt Tempo
+    const factor = this.wrecked ? 0 : Math.max(0.25, 1 - this.collisionCount * 0.07);
+    return this.maxSpeedBase * factor;
+  }
+
+  /** Kollision registrieren – gibt true wenn gerade wrecked geworden */
+  registerCollision(): boolean {
+    if (this.wrecked) return false;
+    this.collisionCount = Math.min(10, this.collisionCount + 1);
+    this.updateDamageVisuals();
+    if (this.collisionCount >= 10) {
+      this.wrecked = true;
+      this.speed = 0;
+      return true;
+    }
+    return false;
+  }
+
+  private updateDamageVisuals() {
+    const c = this.collisionCount;
+    // Karosserie dunkler / rötlicher
+    if (c >= 2) {
+      this.bodyRect.setFillStyle(Phaser.Display.Color.Interpolate.ColorWithColor(
+        { r: 255, g: 210, b: 63 },
+        { r: 80, g: 40, b: 30 },
+        10,
+        c
+      ) as any);
+      // fallback simple darken
+      const t = c / 10;
+      const r = Math.floor(255 * (1 - t * 0.6));
+      const g = Math.floor(210 * (1 - t * 0.7));
+      const b = Math.floor(63 * (1 - t * 0.3));
+      this.bodyRect.setFillStyle(Phaser.Display.Color.GetColor(r, g, b));
+    }
+
+    if (c >= 4 && !this.smokeEmitter) {
+      this.smokeEmitter = this.sceneRef.add.particles(0, 0, "smoke_px", {
+        speed: { min: 8, max: 28 },
+        angle: { min: 240, max: 300 },
+        scale: { start: 0.5, end: 1.8 },
+        alpha: { start: 0.45, end: 0 },
+        lifespan: 700,
+        frequency: 80,
+        follow: this.sprite,
+        followOffset: { x: 8, y: -4 },
+        quantity: 1,
+      });
+      this.smokeEmitter.setDepth(21);
+    }
+    if (this.smokeEmitter) {
+      // Rauch intensiver bis 10
+      const intensity = Math.min(1, (c - 3) / 7);
+      this.smokeEmitter.setFrequency(Math.max(25, 90 - intensity * 70));
+      this.smokeEmitter.setQuantity(1 + Math.floor(intensity * 3));
+    }
+  }
+
+  resetDamage() {
+    this.collisionCount = 0;
+    this.wrecked = false;
+    this.smokeEmitter?.destroy();
+    this.smokeEmitter = null;
+    this.bodyRect.setFillStyle(VEHICLE_COLORS[this.vehicleClass].body);
+  }
+
   update(
     dt: number,
-    input: { up: boolean; down: boolean; left: boolean; right: boolean },
+    input: {
+      up: boolean;
+      down: boolean;
+      left: boolean;
+      right: boolean;
+      axisX?: number;
+      axisY?: number;
+      analog?: boolean;
+    },
     isDrivable?: DrivableCheck
   ) {
-    let braking = false;
-    if (input.up) {
-      this.speed += this.acceleration * dt;
-    } else if (input.down) {
-      this.speed -= this.brakingForce * dt;
-      braking = this.speed > 10;
-    } else {
-      if (this.speed > 0) this.speed = Math.max(0, this.speed - this.friction * dt);
-      else if (this.speed < 0) this.speed = Math.min(0, this.speed + this.friction * dt);
+    if (this.wrecked) {
+      this.speed = 0;
+      return;
     }
-    this.speed = Phaser.Math.Clamp(this.speed, -this.maxSpeed * 0.45, this.maxSpeed);
 
-    const speedFactor = Phaser.Math.Clamp(Math.abs(this.speed) / this.maxSpeed, 0.12, 1);
-    const turnRate = this.turnRateBase * speedFactor * (this.speed < 0 ? -1 : 1);
-    if (input.left) this.angle -= turnRate * dt;
-    if (input.right) this.angle += turnRate * dt;
+    let braking = false;
+    const analog = !!input.analog && (input.axisX != null || input.axisY != null);
+    const axisY = input.axisY ?? 0;
+    const axisX = input.axisX ?? 0;
+
+    if (analog) {
+      // Joystick: oben = Gas (axisY negativ im Screen-Space)
+      const throttle = -axisY;
+      if (throttle > 0.15) {
+        this.speed += this.acceleration * throttle * dt;
+      } else if (throttle < -0.2) {
+        this.speed -= this.brakingForce * (-throttle) * dt;
+        braking = this.speed > 10;
+      } else {
+        if (this.speed > 0) this.speed = Math.max(0, this.speed - this.friction * dt);
+        else if (this.speed < 0) this.speed = Math.min(0, this.speed + this.friction * dt);
+      }
+      this.speed = Phaser.Math.Clamp(this.speed, -this.maxSpeed * 0.4, this.maxSpeed);
+      const speedFactor = Phaser.Math.Clamp(Math.abs(this.speed) / this.maxSpeedBase, 0.12, 1);
+      if (Math.abs(axisX) > 0.12) {
+        this.angle += axisX * this.turnRateBase * speedFactor * (this.speed < 0 ? -1 : 1) * dt;
+      }
+    } else {
+      if (input.up) this.speed += this.acceleration * dt;
+      else if (input.down) {
+        this.speed -= this.brakingForce * dt;
+        braking = this.speed > 10;
+      } else {
+        if (this.speed > 0) this.speed = Math.max(0, this.speed - this.friction * dt);
+        else if (this.speed < 0) this.speed = Math.min(0, this.speed + this.friction * dt);
+      }
+      this.speed = Phaser.Math.Clamp(this.speed, -this.maxSpeed * 0.45, this.maxSpeed);
+      const speedFactor = Phaser.Math.Clamp(Math.abs(this.speed) / this.maxSpeedBase, 0.12, 1);
+      const turnRate = this.turnRateBase * speedFactor * (this.speed < 0 ? -1 : 1);
+      if (input.left) this.angle -= turnRate * dt;
+      if (input.right) this.angle += turnRate * dt;
+    }
 
     const dx = Math.cos(this.angle) * this.speed * dt;
     const dy = Math.sin(this.angle) * this.speed * dt;
@@ -146,7 +249,6 @@ export class Car {
         this.sprite.x = nx;
         this.sprite.y = ny;
       } else {
-        // Wandgleiten: Achsen getrennt
         let moved = false;
         if (isDrivable(nx, oy)) {
           this.sprite.x = nx;
@@ -156,27 +258,15 @@ export class Car {
           this.sprite.y = ny;
           moved = true;
         }
-        if (!moved) {
-          // Vollblockade → abbremsen, aber nicht einfrieren
-          this.speed *= 0.4;
-        } else {
-          this.speed *= 0.92;
-        }
+        if (!moved) this.speed *= 0.4;
+        else this.speed *= 0.92;
       }
     }
 
     this.sprite.rotation = this.angle;
-
-    for (const bl of this.brakeLights) {
-      bl.setFillStyle(braking ? 0xff1744 : 0xb71c1c);
-    }
-    for (const hl of this.headLights) {
-      hl.setFillStyle(0xfffde7);
-      hl.setAlpha(0.95);
-    }
+    for (const bl of this.brakeLights) bl.setFillStyle(braking ? 0xff1744 : 0xb71c1c);
   }
 
-  /** NPC: feste Geschwindigkeit entlang angle (ohne Spieler-Kollision). */
   updateNpc(dt: number, targetSpeed: number) {
     this.speed = Phaser.Math.Linear(this.speed, targetSpeed, 0.05);
     this.sprite.x += Math.cos(this.angle) * this.speed * dt;
@@ -194,10 +284,16 @@ export class Car {
   }
 
   get currentSpeedKmh() {
-    return Math.round((Math.abs(this.speed) / 1.8) * 3.6 * 0.04);
+    return Math.round((Math.abs(this.speed) / 1.6) * 3.6 * 0.04);
+  }
+
+  /** Bounding radius für Auto-Auto-Kollision */
+  get radius() {
+    return 14;
   }
 
   destroy() {
+    this.smokeEmitter?.destroy();
     this.sprite.destroy();
   }
 }

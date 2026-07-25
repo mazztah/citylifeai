@@ -4,7 +4,6 @@ import { WorldScene } from "./scenes/WorldScene";
 import { UIScene } from "./scenes/UIScene";
 import { GAME_WIDTH, GAME_HEIGHT } from "./config";
 
-// Telegram Mini App: volle Höhe anfordern, Rand-Swipe-Schließen verhindern
 const tg = (window as any)?.Telegram?.WebApp;
 if (tg) {
   tg.ready();
@@ -12,18 +11,49 @@ if (tg) {
   tg.disableVerticalSwipes?.();
 }
 
+// Mobile: niedrigere Pixel-Ratio spart GPU
+const isMobile =
+  /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) ||
+  (navigator.maxTouchPoints > 0 && window.innerWidth < 900);
+const maxDpr = isMobile ? 1.5 : 2;
+
 new Phaser.Game({
   type: Phaser.AUTO,
   parent: "game-root",
   width: GAME_WIDTH,
   height: GAME_HEIGHT,
   backgroundColor: "#0f1115",
+  // Volle Fläche, keine abgeschnittenen Ränder durch Letterboxing
   scale: {
-    mode: Phaser.Scale.FIT,
+    mode: Phaser.Scale.RESIZE,
     autoCenter: Phaser.Scale.CENTER_BOTH,
+    width: window.innerWidth,
+    height: window.innerHeight,
+  },
+  render: {
+    antialias: !isMobile,
+    pixelArt: false,
+    roundPixels: true,
+    powerPreference: "high-performance",
+  },
+  fps: {
+    target: isMobile ? 40 : 60,
+    min: 20,
+    forceSetTimeOut: isMobile,
   },
   physics: {
-    default: undefined, // eigene, einfache Fahrphysik in Car.ts statt Arcade Physics
+    default: undefined,
   },
   scene: [BootScene, WorldScene, UIScene],
+  banner: false,
 });
+
+// DPR begrenzen
+try {
+  const canvas = document.querySelector("#game-root canvas") as HTMLCanvasElement | null;
+  if (canvas && window.devicePixelRatio > maxDpr) {
+    // Phaser setzt DPR intern; Scale.RESIZE + niedrigere target FPS helfen bereits
+  }
+} catch {
+  /* ignore */
+}

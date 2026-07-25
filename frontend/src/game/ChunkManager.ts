@@ -91,19 +91,7 @@ export class ChunkManager {
 
     for (const poi of this.graph.pois) {
       const color = POI_COLORS[poi.category] ?? 0xcccccc;
-      const ring = this.scene.add
-        .circle(poi.x, poi.y, 10, color, 0.15)
-        .setStrokeStyle(2, color, 0.9)
-        .setDepth(5);
-      this.scene.tweens.add({
-        targets: ring,
-        scale: { from: 0.85, to: 1.2 },
-        alpha: { from: 0.9, to: 0.4 },
-        duration: 1200,
-        yoyo: true,
-        repeat: -1,
-      });
-      this.scene.add.circle(poi.x, poi.y, 5, color).setStrokeStyle(1, 0xffffff, 0.9).setDepth(6);
+      this.scene.add.circle(poi.x, poi.y, 5, color).setStrokeStyle(1, 0xffffff, 0.85).setDepth(6);
       const label = this.scene.add
         .text(poi.x, poi.y - 20, poi.name, {
           fontSize: "11px",

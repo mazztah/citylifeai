@@ -3,17 +3,19 @@ import { RoadGraph } from "./RoadGraph";
 import { Car, type VehicleClass } from "./Car";
 
 /**
- * Belebt die Welt: Bäume, Laternen, Verkehr, Fußgänger – prozedural entlang
- * des Straßennetzes und an POIs, ohne zusätzliche Assets.
+ * Belebt die Welt – reduziert auf Mobile (weniger Traffic/Peds/Bäume).
  */
 export class WorldDecor {
   private staticObjects: Phaser.GameObjects.GameObject[] = [];
-  private traffic: { car: Car; path: { x: number; y: number }[]; idx: number; speed: number }[] = [];
+  traffic: { car: Car; path: { x: number; y: number }[]; idx: number; speed: number }[] = [];
   private peds: {
     sprite: Phaser.GameObjects.Container;
+    body: Phaser.GameObjects.Rectangle;
+    legL: Phaser.GameObjects.Rectangle;
+    legR: Phaser.GameObjects.Rectangle;
     path: { x: number; y: number }[];
     idx: number;
-    t: number;
+    phase: number;
   }[] = [];
 
   constructor(
@@ -21,80 +23,49 @@ export class WorldDecor {
     private graph: RoadGraph
   ) {}
 
-  spawnAll() {
+  spawnAll(mobile: boolean) {
     if (!this.graph.roads.length) return;
-    this.spawnTreesNearParks();
-    this.spawnStreetLights();
-    this.spawnBenchesAndBins();
-    this.spawnTraffic(10);
-    this.spawnPedestrians(12);
+    this.spawnTreesNearParks(mobile ? 3 : 6);
+    if (!mobile) this.spawnStreetLights();
+    this.spawnTraffic(mobile ? 4 : 8);
+    this.spawnPedestrians(mobile ? 6 : 10);
   }
 
-  private spawnTreesNearParks() {
+  private spawnTreesNearParks(perPark: number) {
     const parks = this.graph.pois.filter((p) => p.category === "park");
     for (const park of parks) {
-      for (let i = 0; i < 8; i++) {
-        const ang = (i / 8) * Math.PI * 2;
-        const r = 40 + Math.random() * 50;
+      for (let i = 0; i < perPark; i++) {
+        const ang = (i / perPark) * Math.PI * 2;
+        const r = 40 + Math.random() * 40;
         this.addTree(park.x + Math.cos(ang) * r, park.y + Math.sin(ang) * r);
-      }
-    }
-    // Zusätzliche Bäume entlang sekundärer Straßen
-    for (const road of this.graph.roads) {
-      if (road.kind === "primary") continue;
-      for (let i = 1; i < road.points.length - 1; i += 2) {
-        if (Math.random() > 0.45) continue;
-        const p = road.points[i];
-        const n = road.points[i + 1] || p;
-        const dx = n.x - p.x;
-        const dy = n.y - p.y;
-        const len = Math.hypot(dx, dy) || 1;
-        const ox = (-dy / len) * 18;
-        const oy = (dx / len) * 18;
-        this.addTree(p.x + ox, p.y + oy);
       }
     }
   }
 
   private addTree(x: number, y: number) {
-    const shadow = this.scene.add.ellipse(x + 2, y + 4, 14, 8, 0x000000, 0.25).setDepth(2);
-    const trunk = this.scene.add.rectangle(x, y + 2, 3, 8, 0x5d4037).setDepth(3);
-    const canopy = this.scene.add.circle(x, y - 4, 9 + Math.random() * 4, 0x2e7d32, 0.9).setDepth(3);
-    const canopy2 = this.scene.add.circle(x - 3, y - 2, 6, 0x388e3c, 0.7).setDepth(3);
-    this.staticObjects.push(shadow, trunk, canopy, canopy2);
+    const shadow = this.scene.add.ellipse(x + 2, y + 4, 12, 7, 0x000000, 0.22).setDepth(2);
+    const trunk = this.scene.add.rectangle(x, y + 2, 3, 7, 0x5d4037).setDepth(3);
+    const canopy = this.scene.add.circle(x, y - 3, 8, 0x2e7d32, 0.9).setDepth(3);
+    this.staticObjects.push(shadow, trunk, canopy);
   }
 
   private spawnStreetLights() {
+    let n = 0;
     for (const road of this.graph.roads) {
-      if (road.kind === "tertiary" && Math.random() > 0.5) continue;
-      for (let i = 0; i < road.points.length - 1; i += 2) {
+      if (road.kind === "tertiary") continue;
+      for (let i = 0; i < road.points.length - 1; i += 3) {
+        if (n > 40) return;
         const p = road.points[i];
-        const n = road.points[i + 1];
-        const dx = n.x - p.x;
-        const dy = n.y - p.y;
+        const next = road.points[i + 1];
+        const dx = next.x - p.x;
+        const dy = next.y - p.y;
         const len = Math.hypot(dx, dy) || 1;
         const ox = (-dy / len) * 14;
         const oy = (dx / len) * 14;
-        this.addLamp(p.x + ox, p.y + oy);
-      }
-    }
-  }
-
-  private addLamp(x: number, y: number) {
-    const pole = this.scene.add.rectangle(x, y, 2, 16, 0x455a64).setDepth(4);
-    const head = this.scene.add.circle(x, y - 9, 3, 0xfff59d, 0.85).setDepth(4);
-    const glow = this.scene.add.circle(x, y - 9, 10, 0xfff59d, 0.12).setDepth(3);
-    this.staticObjects.push(pole, head, glow);
-  }
-
-  private spawnBenchesAndBins() {
-    for (const poi of this.graph.pois) {
-      if (poi.category === "cafe" || poi.category === "park" || poi.category === "transit") {
-        const bx = poi.x + 12;
-        const by = poi.y + 10;
-        const bench = this.scene.add.rectangle(bx, by, 12, 4, 0x6d4c41).setDepth(4);
-        const bin = this.scene.add.rectangle(bx + 14, by, 5, 6, 0x37474f).setDepth(4);
-        this.staticObjects.push(bench, bin);
+        const pole = this.scene.add.rectangle(p.x + ox, p.y + oy, 2, 14, 0x455a64).setDepth(4);
+        const head = this.scene.add.circle(p.x + ox, p.y + oy - 8, 2.5, 0xfff59d, 0.8).setDepth(4);
+        this.staticObjects.push(pole, head);
+        n++;
       }
     }
   }
@@ -102,7 +73,7 @@ export class WorldDecor {
   private spawnTraffic(count: number) {
     const roads = this.graph.roads.filter((r) => r.points.length >= 2);
     if (!roads.length) return;
-    const classes: VehicleClass[] = ["taxi", "civilian", "delivery", "suv", "police"];
+    const classes: VehicleClass[] = ["taxi", "civilian", "delivery", "suv"];
 
     for (let i = 0; i < count; i++) {
       const road = roads[Math.floor(Math.random() * roads.length)];
@@ -119,7 +90,7 @@ export class WorldDecor {
         car,
         path,
         idx: 0,
-        speed: 40 + Math.random() * 60,
+        speed: 35 + Math.random() * 45,
       });
     }
   }
@@ -129,25 +100,28 @@ export class WorldDecor {
     const colors = [0xffcc80, 0x90caf9, 0xf48fb1, 0xce93d8, 0xa5d6a7];
     for (let i = 0; i < count; i++) {
       const road = roads[Math.floor(Math.random() * roads.length)];
-      if (road.points.length < 2) continue;
+      if (!road || road.points.length < 2) continue;
       const path = road.points.map((p, idx) => {
         const n = road.points[Math.min(idx + 1, road.points.length - 1)];
         const dx = n.x - p.x;
         const dy = n.y - p.y;
         const len = Math.hypot(dx, dy) || 1;
-        // Gehweg-Offset
         return { x: p.x + (-dy / len) * 16, y: p.y + (dx / len) * 16 };
       });
       const c = colors[i % colors.length];
-      const body = this.scene.add.circle(0, 0, 4, c);
-      const head = this.scene.add.circle(0, -5, 2.5, 0xffe0b2);
-      const container = this.scene.add.container(path[0].x, path[0].y, [body, head]).setDepth(11);
-      this.peds.push({ sprite: container, path, idx: 0, t: 0 });
+      // Einfache „CSS-artige“ Figur: Körper + Beine die phasenverschoben wippen
+      const body = this.scene.add.rectangle(0, -2, 5, 7, c);
+      const head = this.scene.add.circle(0, -7, 2.5, 0xffe0b2);
+      const legL = this.scene.add.rectangle(-1.5, 3, 2, 5, 0x37474f);
+      const legR = this.scene.add.rectangle(1.5, 3, 2, 5, 0x455a64);
+      const container = this.scene.add
+        .container(path[0].x, path[0].y, [legL, legR, body, head])
+        .setDepth(11);
+      this.peds.push({ sprite: container, body, legL, legR, path, idx: 0, phase: Math.random() * Math.PI * 2 });
     }
   }
 
   update(dt: number) {
-    // Verkehr entlang Pfad
     for (const t of this.traffic) {
       if (t.idx >= t.path.length - 1) {
         t.idx = 0;
@@ -164,12 +138,10 @@ export class WorldDecor {
         t.idx++;
         continue;
       }
-      const angle = Math.atan2(dy, dx);
-      t.car.setAngle(angle);
+      t.car.setAngle(Math.atan2(dy, dx));
       t.car.updateNpc(dt, t.speed);
     }
 
-    // Fußgänger
     for (const ped of this.peds) {
       if (ped.idx >= ped.path.length - 1) {
         ped.idx = 0;
@@ -184,10 +156,21 @@ export class WorldDecor {
         ped.idx++;
         continue;
       }
-      const sp = 22;
+      const sp = 20;
       ped.sprite.x += (dx / dist) * sp * dt;
       ped.sprite.y += (dy / dist) * sp * dt;
+      // Geh-Animation: Beine schwingen
+      ped.phase += dt * 10;
+      const swing = Math.sin(ped.phase) * 2.2;
+      ped.legL.y = 3 + swing;
+      ped.legR.y = 3 - swing;
+      ped.sprite.setRotation(Math.atan2(dy, dx) + Math.PI / 2);
     }
+  }
+
+  /** Alle NPC-Autos für Kollisionschecks */
+  getTrafficCars(): Car[] {
+    return this.traffic.map((t) => t.car);
   }
 
   destroy() {

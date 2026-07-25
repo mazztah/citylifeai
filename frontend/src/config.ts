@@ -1,24 +1,20 @@
 // Zentrale Spielkonfiguration + einheitliche Web-Mercator-Projektion.
-// Straßen und OSM-Tiles nutzen dieselbe Transformation → pixelgenaue Ausrichtung.
 
 export const API_URL: string = (import.meta as any).env?.VITE_API_URL || "";
 
 /** Kartenursprung: Kröpcke, Hannover */
 export const MAP_ORIGIN = { lat: 52.3759, lon: 9.7392 };
 
-/** Erde / Web Mercator (EPSG:3857) */
 export const EARTH_RADIUS = 6378137;
-export const ORIGIN_SHIFT = Math.PI * EARTH_RADIUS; // ≈ 20037508.34
+export const ORIGIN_SHIFT = Math.PI * EARTH_RADIUS;
 
 /**
- * Pixel pro Meter in der Phaser-Welt.
- * Bei Zoom 16 ist eine OSM-Kachel ~611 m breit → ~1344 px bei 2.2 → etwas groß.
- * 1.8 wirkt ausgewogen für Fahrgefühl + lesbare Karte.
+ * Pixel pro Meter – auf Mobile etwas geringer für weniger Overdraw.
  */
-export const PIXELS_PER_METER = 1.8;
+export const PIXELS_PER_METER = 1.6;
 
-/** Standard-Zoom für Rasterkacheln (höher = schärfer, mehr Downloads) */
-export const MAP_TILE_ZOOM = 15;
+/** Rasterkachel-Zoom (14 = weniger Tiles / bessere Performance auf Android) */
+export const MAP_TILE_ZOOM = 14;
 
 export function lonLatToMercator(lon: number, lat: number): { x: number; y: number } {
   const x = (lon * ORIGIN_SHIFT) / 180;
@@ -29,10 +25,6 @@ export function lonLatToMercator(lon: number, lat: number): { x: number; y: numb
 
 const ORIGIN_MERC = lonLatToMercator(MAP_ORIGIN.lon, MAP_ORIGIN.lat);
 
-/**
- * WGS84 → Phaser-Weltpixel (Web Mercator, y nach Süden positiv wie Bildschirm).
- * Einmalige Transformation beim Import/Load – nicht pro Frame.
- */
 export function lonLatToWorld(lon: number, lat: number): { x: number; y: number } {
   const m = lonLatToMercator(lon, lat);
   return {
@@ -50,7 +42,6 @@ export function worldToLonLat(wx: number, wy: number): { lon: number; lat: numbe
   return { lon, lat };
 }
 
-/** OSM-Tile-Index aus Lon/Lat */
 export function lonLatToTile(lon: number, lat: number, zoom: number): { x: number; y: number } {
   const n = 2 ** zoom;
   const x = Math.floor(((lon + 180) / 360) * n);
@@ -59,7 +50,6 @@ export function lonLatToTile(lon: number, lat: number, zoom: number): { x: numbe
   return { x, y };
 }
 
-/** Lon/Lat-Ecken einer OSM-Kachel */
 export function tileToLonLatBounds(tx: number, ty: number, zoom: number) {
   const n = 2 ** zoom;
   const west = (tx / n) * 360 - 180;
@@ -69,10 +59,10 @@ export function tileToLonLatBounds(tx: number, ty: number, zoom: number) {
   return { west, south, east, north };
 }
 
-/** Kachelgröße in Metern (Web Mercator, am Äquator; für Platzierung nutzen wir Ecken) */
-export function tileSizeMeters(zoom: number): number {
-  return (2 * ORIGIN_SHIFT) / 2 ** zoom;
-}
+/** Basis-Auflösung – wird per Scale.RESIZE an Viewport angepasst */
+export const GAME_WIDTH = 480;
+export const GAME_HEIGHT = 800;
 
-export const GAME_WIDTH = 960;
-export const GAME_HEIGHT = 640;
+/** Zoom: Auto / zu Fuß */
+export const ZOOM_DRIVING = 1.05;
+export const ZOOM_WALKING = 1.55;

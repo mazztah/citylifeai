@@ -19,20 +19,29 @@ export interface PoiPoint {
   lon: number;
 }
 
+export interface PolyArea {
+  id: string;
+  name: string;
+  category: string;
+  points: { x: number; y: number }[];
+}
+
 /**
- * Lädt das OSM-basierte Straßen-/POI-GeoJSON (siehe osm_import.py + MapTiles) und
- * rechnet alle Koordinaten einmalig in Pixel-Weltkoordinaten um. Für einen
- * echten OSM-Import würde nur diese Datei ausgetauscht - der Rest der Klasse
- * bleibt identisch (siehe backend/app/tools/osm_import.py für das Zielschema).
+ * Lädt OSM-basierte Straßen/POIs sowie Gebäude- und Flächenpolygone.
+ * Alle Koordinaten werden einmalig in Web-Mercator-Weltpixel umgerechnet
+ * (identisch zu MapTiles) – dadurch liegen Vektorstraßen und Rasterkacheln
+ * im selben Raum.
  */
 export class RoadGraph {
   roads: RoadSegment[] = [];
   pois: PoiPoint[] = [];
+  buildings: PolyArea[] = [];
+  areas: PolyArea[] = [];
 
   constructor() {
     const data = geojson as any;
 
-    for (const feature of data.roads.features) {
+    for (const feature of data.roads?.features ?? []) {
       const points = feature.geometry.coordinates.map(([lon, lat]: [number, number]) =>
         lonLatToWorld(lon, lat)
       );
@@ -43,15 +52,41 @@ export class RoadGraph {
       });
     }
 
-    for (const feature of data.pois.features) {
+    for (const feature of data.pois?.features ?? []) {
       const [lon, lat] = feature.geometry.coordinates;
       const { x, y } = lonLatToWorld(lon, lat);
-      this.pois.push({ name: feature.properties.name, category: feature.properties.category, x, y, lat, lon });
+      this.pois.push({
+        name: feature.properties.name,
+        category: feature.properties.category,
+        x,
+        y,
+        lat,
+        lon,
+      });
+    }
+
+    for (const feature of data.buildings?.features ?? []) {
+      const ring = feature.geometry.coordinates[0] as [number, number][];
+      this.buildings.push({
+        id: String(feature.properties?.id ?? ""),
+        name: feature.properties?.name ?? "Gebäude",
+        category: "building",
+        points: ring.map(([lon, lat]) => lonLatToWorld(lon, lat)),
+      });
+    }
+
+    for (const feature of data.areas?.features ?? []) {
+      const ring = feature.geometry.coordinates[0] as [number, number][];
+      this.areas.push({
+        id: String(feature.properties?.id ?? feature.properties?.name ?? ""),
+        name: feature.properties?.name ?? "Fläche",
+        category: feature.properties?.category ?? "plaza",
+        points: ring.map(([lon, lat]) => lonLatToWorld(lon, lat)),
+      });
     }
   }
 
-  /** Nächster Punkt auf irgendeiner Straße zu einer Weltposition - simple
-   * "bleib in der Nähe der Straße"-Hilfe, kein echtes Pathfinding (Ausbaustufe: siehe ROADMAP). */
+  /** Nächster Punkt auf irgendeiner Straße – für Spawn/Debug, kein Pathfinding. */
   nearestRoadPoint(x: number, y: number): { x: number; y: number; distance: number } {
     let best = { x, y, distance: Infinity };
     for (const road of this.roads) {

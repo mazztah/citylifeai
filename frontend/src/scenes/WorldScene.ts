@@ -6,6 +6,7 @@ import { MissionMarker } from "../game/MissionMarker";
 import { StoryDialog } from "../game/StoryDialog";
 import { MapTiles } from "../game/MapTiles";
 import { WorldDecor } from "../game/WorldDecor";
+import { DrivableArea } from "../game/DrivableArea";
 import { api, type Mission, type Player } from "../api/client";
 import { lonLatToWorld, MAP_TILE_ZOOM } from "../config";
 
@@ -16,6 +17,7 @@ export class WorldScene extends Phaser.Scene {
   private chunkManager!: ChunkManager;
   private mapTiles!: MapTiles;
   private decor!: WorldDecor;
+  private drivable!: DrivableArea;
   private markers: MissionMarker[] = [];
   private storyDialog!: StoryDialog;
 
@@ -31,20 +33,22 @@ export class WorldScene extends Phaser.Scene {
     this.player = data.player;
   }
 
-  // Kein preload mit externen URLs – sonst hängt Phaser vor create()
   preload() {}
 
   create() {
     try {
-      // 1) Spiel sofort spielbar: Straßen + Auto + UI
       this.chunkManager = new ChunkManager(this);
       this.chunkManager.renderAll();
+
+      this.drivable = new DrivableArea(this.chunkManager.graph);
 
       this.decor = new WorldDecor(this, this.chunkManager.graph);
       this.decor.spawnAll();
 
+      // Spawn am Hauptbahnhof – auf nächste Straße snappen falls nötig
       const start = lonLatToWorld(9.7386, 52.3766);
-      this.car = new Car(this, start.x, start.y, "player");
+      const snapped = this.drivable.snapToRoad(start.x, start.y);
+      this.car = new Car(this, snapped.x, snapped.y, "player");
       this.driveInput = new InputController(this);
 
       this.cameras.main.startFollow(this.car.sprite, true, 0.1, 0.1);
@@ -68,7 +72,6 @@ export class WorldScene extends Phaser.Scene {
       this.refreshMissions();
       this.checkStory(true);
 
-      // 2) Kacheln asynchron im Hintergrund (blockieren nicht)
       this.mapTiles = new MapTiles(
         this,
         Math.min(MAP_TILE_ZOOM, 15),
@@ -89,20 +92,14 @@ export class WorldScene extends Phaser.Scene {
   }
 
   update(_time: number, deltaMs: number) {
-    if (!this.car || !this.driveInput) return;
+    if (!this.car || !this.driveInput || !this.drivable) return;
     const dt = deltaMs / 1000;
     try {
-      this.car.update(dt, this.driveInput.read());
+      this.car.update(dt, this.driveInput.read(), (x, y) => this.drivable.isDrivable(x, y));
       this.events.emit("speed-updated", this.car.currentSpeedKmh);
       this.decor?.update(dt);
 
       const pos = this.car.position;
-      const nearest = this.chunkManager.graph.nearestRoadPoint(pos.x, pos.y);
-      if (nearest.distance > 35 && nearest.distance < 180) {
-        const pull = 0.02;
-        this.car.sprite.x += (nearest.x - pos.x) * pull;
-        this.car.sprite.y += (nearest.y - pos.y) * pull;
-      }
 
       for (const marker of [...this.markers]) {
         if (marker.isReachable(pos.x, pos.y)) this.completeMission(marker);

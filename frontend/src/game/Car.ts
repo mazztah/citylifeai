@@ -17,8 +17,11 @@ const VEHICLE_COLORS: Record<VehicleClass, { body: number; accent: number }> = {
   suv: { body: 0x37474f, accent: 0x263238 },
 };
 
+export type DrivableCheck = (x: number, y: number) => boolean;
+
 /**
  * Mehrschichtiges Top-Down-Fahrzeug: Schatten, Karosserie, Fenster, Räder, Lichter.
+ * Optional: Kollisionsprüfung (Wandgleiten) über isDrivable-Callback.
  */
 export class Car {
   sprite: Phaser.GameObjects.Container;
@@ -52,10 +55,8 @@ export class Car {
     this.maxSpeed = opts?.maxSpeed ?? (vehicleClass === "player" ? 280 : 180);
     this.acceleration = opts?.acceleration ?? (vehicleClass === "player" ? 280 : 160);
 
-    // Schatten
     this.shadow = scene.add.ellipse(1, 3, w + 4, h + 2, 0x000000, 0.35);
 
-    // Räder
     const wheelColor = 0x1a1a1a;
     const fl = scene.add.rectangle(-w * 0.28, -h * 0.55, 6, 3, wheelColor);
     const fr = scene.add.rectangle(-w * 0.28, h * 0.55, 6, 3, wheelColor);
@@ -63,35 +64,29 @@ export class Car {
     const rr = scene.add.rectangle(w * 0.28, h * 0.55, 6, 3, wheelColor);
     this.wheels = [fl, fr, rl, rr];
 
-    // Karosserie
     const body = scene.add.rectangle(0, 0, w, h, colors.body).setStrokeStyle(1.5, 0x111111);
     const roof = scene.add
       .rectangle(1, 0, w * 0.42, h * 0.72, colors.accent)
       .setAlpha(0.35);
 
-    // Fenster
     const windshield = scene.add.rectangle(-w * 0.22, 0, w * 0.22, h * 0.62, 0x81d4fa, 0.85);
     const rearWindow = scene.add.rectangle(w * 0.2, 0, w * 0.16, h * 0.55, 0x4fc3f7, 0.7);
 
-    // Scheinwerfer
     const hl1 = scene.add.rectangle(-w * 0.48, -h * 0.28, 3, 3, 0xfff9c4);
     const hl2 = scene.add.rectangle(-w * 0.48, h * 0.28, 3, 3, 0xfff9c4);
     this.headLights = [hl1, hl2];
 
-    // Bremslichter
     const bl1 = scene.add.rectangle(w * 0.48, -h * 0.28, 3, 3, 0xb71c1c);
     const bl2 = scene.add.rectangle(w * 0.48, h * 0.28, 3, 3, 0xb71c1c);
     this.brakeLights = [bl1, bl2];
 
-    // Taxi-Schild
     const extras: Phaser.GameObjects.GameObject[] = [];
     if (vehicleClass === "taxi") {
       extras.push(scene.add.rectangle(0, 0, 8, 4, 0x222222));
       extras.push(scene.add.rectangle(0, -1, 6, 2, 0xffc107));
     }
     if (vehicleClass === "police") {
-      const lightBar = scene.add.rectangle(0, 0, 10, 3, 0x1565c0);
-      extras.push(lightBar);
+      extras.push(scene.add.rectangle(0, 0, 10, 3, 0x1565c0));
     }
 
     this.sprite = scene.add.container(x, y, [
@@ -109,7 +104,16 @@ export class Car {
     this.sprite.setDepth(20);
   }
 
-  update(dt: number, input: { up: boolean; down: boolean; left: boolean; right: boolean }) {
+  /**
+   * Spieler-Update mit optionaler Kollision.
+   * Achsengetrenntes Wandgleiten: wenn der volle Schritt blockiert ist,
+   * wird X und Y einzeln versucht – dadurch gleitet man an Gebäuden entlang.
+   */
+  update(
+    dt: number,
+    input: { up: boolean; down: boolean; left: boolean; right: boolean },
+    isDrivable?: DrivableCheck
+  ) {
     let braking = false;
     if (input.up) {
       this.speed += this.acceleration * dt;
@@ -127,22 +131,52 @@ export class Car {
     if (input.left) this.angle -= turnRate * dt;
     if (input.right) this.angle += turnRate * dt;
 
-    this.sprite.x += Math.cos(this.angle) * this.speed * dt;
-    this.sprite.y += Math.sin(this.angle) * this.speed * dt;
+    const dx = Math.cos(this.angle) * this.speed * dt;
+    const dy = Math.sin(this.angle) * this.speed * dt;
+    const ox = this.sprite.x;
+    const oy = this.sprite.y;
+
+    if (!isDrivable) {
+      this.sprite.x = ox + dx;
+      this.sprite.y = oy + dy;
+    } else {
+      const nx = ox + dx;
+      const ny = oy + dy;
+      if (isDrivable(nx, ny)) {
+        this.sprite.x = nx;
+        this.sprite.y = ny;
+      } else {
+        // Wandgleiten: Achsen getrennt
+        let moved = false;
+        if (isDrivable(nx, oy)) {
+          this.sprite.x = nx;
+          moved = true;
+        }
+        if (isDrivable(this.sprite.x, ny)) {
+          this.sprite.y = ny;
+          moved = true;
+        }
+        if (!moved) {
+          // Vollblockade → stark abbremsen
+          this.speed *= 0.25;
+        } else {
+          this.speed *= 0.85;
+        }
+      }
+    }
+
     this.sprite.rotation = this.angle;
 
-    // Bremslichter aufhellen
     for (const bl of this.brakeLights) {
       bl.setFillStyle(braking ? 0xff1744 : 0xb71c1c);
     }
-    // Scheinwerfer leicht
     for (const hl of this.headLights) {
       hl.setFillStyle(0xfffde7);
       hl.setAlpha(0.95);
     }
   }
 
-  /** NPC: feste Geschwindigkeit entlang angle */
+  /** NPC: feste Geschwindigkeit entlang angle (ohne Spieler-Kollision). */
   updateNpc(dt: number, targetSpeed: number) {
     this.speed = Phaser.Math.Linear(this.speed, targetSpeed, 0.05);
     this.sprite.x += Math.cos(this.angle) * this.speed * dt;

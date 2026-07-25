@@ -1,285 +1,836 @@
 {
   "meta": {
-    "note": "GeoJSON für Hannover-Zentrum. Straßen- und POI-Koordinaten basieren auf echten OpenStreetMap-Positionen (ODbL). Für vollständigen automatischen OSM-Import: python -m backend.app.tools.osm_import fetch && convert (siehe README).",
+    "note": "GeoJSON für Hannover-Zentrum. Straßen an OSM ausgerichtet; Gebäude/Flächen synthetisch ohne Straßenüberlappung für Kollision. Echter OSM-Import: scripts/fetch_hannover_osm.sh",
     "origin_lat": 52.3759,
-    "origin_lon": 9.7320,
-    "source": "openstreetmap-aligned"
+    "origin_lon": 9.732,
+    "source": "openstreetmap-aligned",
+    "building_count": 101,
+    "area_count": 7
   },
   "roads": {
     "type": "FeatureCollection",
     "features": [
       {
         "type": "Feature",
-        "properties": { "name": "Bahnhofstraße", "kind": "primary" },
+        "properties": {
+          "name": "Bahnhofstraße",
+          "kind": "primary"
+        },
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [9.7386, 52.3766], [9.7389, 52.3760], [9.7392, 52.3748],
-            [9.7395, 52.3739], [9.7397, 52.3730]
+            [
+              9.7386,
+              52.3766
+            ],
+            [
+              9.7389,
+              52.376
+            ],
+            [
+              9.7392,
+              52.3748
+            ],
+            [
+              9.7395,
+              52.3739
+            ],
+            [
+              9.7397,
+              52.373
+            ]
           ]
         }
       },
       {
         "type": "Feature",
-        "properties": { "name": "Georgstraße", "kind": "primary" },
+        "properties": {
+          "name": "Georgstraße",
+          "kind": "primary"
+        },
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [9.7392, 52.3748], [9.7380, 52.3742], [9.7368, 52.3736],
-            [9.7361, 52.3733], [9.7345, 52.3726], [9.7330, 52.3720]
+            [
+              9.7392,
+              52.3748
+            ],
+            [
+              9.738,
+              52.3742
+            ],
+            [
+              9.7368,
+              52.3736
+            ],
+            [
+              9.7361,
+              52.3733
+            ],
+            [
+              9.7345,
+              52.3726
+            ],
+            [
+              9.733,
+              52.372
+            ]
           ]
         }
       },
       {
         "type": "Feature",
-        "properties": { "name": "Karmarschstraße", "kind": "secondary" },
+        "properties": {
+          "name": "Karmarschstraße",
+          "kind": "secondary"
+        },
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [9.7392, 52.3748], [9.7400, 52.3740], [9.7408, 52.3732],
-            [9.7411, 52.3720], [9.7411, 52.3701]
+            [
+              9.7392,
+              52.3748
+            ],
+            [
+              9.74,
+              52.374
+            ],
+            [
+              9.7408,
+              52.3732
+            ],
+            [
+              9.7411,
+              52.372
+            ],
+            [
+              9.7411,
+              52.3701
+            ]
           ]
         }
       },
       {
         "type": "Feature",
-        "properties": { "name": "Rathenaustraße", "kind": "secondary" },
+        "properties": {
+          "name": "Rathenaustraße",
+          "kind": "secondary"
+        },
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [9.7330, 52.3720], [9.7345, 52.3712], [9.7361, 52.3701],
-            [9.7380, 52.3695], [9.7401, 52.3690]
+            [
+              9.733,
+              52.372
+            ],
+            [
+              9.7345,
+              52.3712
+            ],
+            [
+              9.7361,
+              52.3701
+            ],
+            [
+              9.738,
+              52.3695
+            ],
+            [
+              9.7401,
+              52.369
+            ]
           ]
         }
       },
       {
         "type": "Feature",
-        "properties": { "name": "Friedrichswall", "kind": "primary" },
+        "properties": {
+          "name": "Friedrichswall",
+          "kind": "primary"
+        },
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [9.7361, 52.3701], [9.7361, 52.3685], [9.7361, 52.3665],
-            [9.7365, 52.3648], [9.7370, 52.3630]
+            [
+              9.7361,
+              52.3701
+            ],
+            [
+              9.7361,
+              52.3685
+            ],
+            [
+              9.7361,
+              52.3665
+            ],
+            [
+              9.7365,
+              52.3648
+            ],
+            [
+              9.737,
+              52.363
+            ]
           ]
         }
       },
       {
         "type": "Feature",
-        "properties": { "name": "Marienstraße", "kind": "secondary" },
+        "properties": {
+          "name": "Marienstraße",
+          "kind": "secondary"
+        },
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [9.7370, 52.3630], [9.7365, 52.3618], [9.7360, 52.3608],
-            [9.7357, 52.3595], [9.7355, 52.3580]
+            [
+              9.737,
+              52.363
+            ],
+            [
+              9.7365,
+              52.3618
+            ],
+            [
+              9.736,
+              52.3608
+            ],
+            [
+              9.7357,
+              52.3595
+            ],
+            [
+              9.7355,
+              52.358
+            ]
           ]
         }
       },
       {
         "type": "Feature",
-        "properties": { "name": "Königstraße", "kind": "secondary" },
+        "properties": {
+          "name": "Königstraße",
+          "kind": "secondary"
+        },
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [9.7411, 52.3701], [9.7425, 52.3703], [9.7440, 52.3705],
-            [9.7455, 52.3708], [9.7477, 52.3710]
+            [
+              9.7411,
+              52.3701
+            ],
+            [
+              9.7425,
+              52.3703
+            ],
+            [
+              9.744,
+              52.3705
+            ],
+            [
+              9.7455,
+              52.3708
+            ],
+            [
+              9.7477,
+              52.371
+            ]
           ]
         }
       },
       {
         "type": "Feature",
-        "properties": { "name": "Lister Meile", "kind": "primary" },
+        "properties": {
+          "name": "Lister Meile",
+          "kind": "primary"
+        },
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [9.7392, 52.3748], [9.7405, 52.3765], [9.7420, 52.3780],
-            [9.7435, 52.3795], [9.7455, 52.3815], [9.7477, 52.3838]
+            [
+              9.7392,
+              52.3748
+            ],
+            [
+              9.7405,
+              52.3765
+            ],
+            [
+              9.742,
+              52.378
+            ],
+            [
+              9.7435,
+              52.3795
+            ],
+            [
+              9.7455,
+              52.3815
+            ],
+            [
+              9.7477,
+              52.3838
+            ]
           ]
         }
       },
       {
         "type": "Feature",
-        "properties": { "name": "Podbielskistraße", "kind": "secondary" },
+        "properties": {
+          "name": "Podbielskistraße",
+          "kind": "secondary"
+        },
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [9.7477, 52.3838], [9.7510, 52.3835], [9.7550, 52.3830],
-            [9.7575, 52.3822], [9.7601, 52.3811]
+            [
+              9.7477,
+              52.3838
+            ],
+            [
+              9.751,
+              52.3835
+            ],
+            [
+              9.755,
+              52.383
+            ],
+            [
+              9.7575,
+              52.3822
+            ],
+            [
+              9.7601,
+              52.3811
+            ]
           ]
         }
       },
       {
         "type": "Feature",
-        "properties": { "name": "Hamburger Allee", "kind": "secondary" },
+        "properties": {
+          "name": "Hamburger Allee",
+          "kind": "secondary"
+        },
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [9.7386, 52.3766], [9.7410, 52.3772], [9.7440, 52.3780],
-            [9.7460, 52.3790], [9.7477, 52.3800]
+            [
+              9.7386,
+              52.3766
+            ],
+            [
+              9.741,
+              52.3772
+            ],
+            [
+              9.744,
+              52.378
+            ],
+            [
+              9.746,
+              52.379
+            ],
+            [
+              9.7477,
+              52.38
+            ]
           ]
         }
       },
       {
         "type": "Feature",
-        "properties": { "name": "Steintor / Goethestraße", "kind": "tertiary" },
+        "properties": {
+          "name": "Steintor / Goethestraße",
+          "kind": "tertiary"
+        },
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [9.7392, 52.3748], [9.7415, 52.3744], [9.7440, 52.3740],
-            [9.7460, 52.3738], [9.7477, 52.3737]
+            [
+              9.7392,
+              52.3748
+            ],
+            [
+              9.7415,
+              52.3744
+            ],
+            [
+              9.744,
+              52.374
+            ],
+            [
+              9.746,
+              52.3738
+            ],
+            [
+              9.7477,
+              52.3737
+            ]
           ]
         }
       },
       {
         "type": "Feature",
-        "properties": { "name": "Arthur-Menge-Ufer", "kind": "tertiary" },
+        "properties": {
+          "name": "Arthur-Menge-Ufer",
+          "kind": "tertiary"
+        },
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [9.7355, 52.3608], [9.7330, 52.3600], [9.7300, 52.3590],
-            [9.7285, 52.3575], [9.7280, 52.3560]
+            [
+              9.7355,
+              52.3608
+            ],
+            [
+              9.733,
+              52.36
+            ],
+            [
+              9.73,
+              52.359
+            ],
+            [
+              9.7285,
+              52.3575
+            ],
+            [
+              9.728,
+              52.356
+            ]
           ]
         }
       },
       {
         "type": "Feature",
-        "properties": { "name": "Sophienstraße", "kind": "tertiary" },
+        "properties": {
+          "name": "Sophienstraße",
+          "kind": "tertiary"
+        },
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [9.74175, 52.37269], [9.74278, 52.37263], [9.74293, 52.37263],
-            [9.74361, 52.37259], [9.74397, 52.37256], [9.74411, 52.37255]
+            [
+              9.74175,
+              52.37269
+            ],
+            [
+              9.74278,
+              52.37263
+            ],
+            [
+              9.74293,
+              52.37263
+            ],
+            [
+              9.74361,
+              52.37259
+            ],
+            [
+              9.74397,
+              52.37256
+            ],
+            [
+              9.74411,
+              52.37255
+            ]
           ]
         }
       },
       {
         "type": "Feature",
-        "properties": { "name": "Theaterstraße", "kind": "tertiary" },
+        "properties": {
+          "name": "Theaterstraße",
+          "kind": "tertiary"
+        },
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [9.74229, 52.37382], [9.74197, 52.37378], [9.74185, 52.37378],
-            [9.74173, 52.37379], [9.74157, 52.37381]
+            [
+              9.74229,
+              52.37382
+            ],
+            [
+              9.74197,
+              52.37378
+            ],
+            [
+              9.74185,
+              52.37378
+            ],
+            [
+              9.74173,
+              52.37379
+            ],
+            [
+              9.74157,
+              52.37381
+            ]
           ]
         }
       },
       {
         "type": "Feature",
-        "properties": { "name": "Baringstraße", "kind": "tertiary" },
+        "properties": {
+          "name": "Baringstraße",
+          "kind": "tertiary"
+        },
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [9.73916, 52.37057], [9.73930, 52.37060], [9.74048, 52.37083],
-            [9.74122, 52.37105], [9.74132, 52.37108]
+            [
+              9.73916,
+              52.37057
+            ],
+            [
+              9.7393,
+              52.3706
+            ],
+            [
+              9.74048,
+              52.37083
+            ],
+            [
+              9.74122,
+              52.37105
+            ],
+            [
+              9.74132,
+              52.37108
+            ]
           ]
         }
       },
       {
         "type": "Feature",
-        "properties": { "name": "Andreaestraße", "kind": "tertiary" },
+        "properties": {
+          "name": "Andreaestraße",
+          "kind": "tertiary"
+        },
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [9.73703, 52.37619], [9.73710, 52.37599], [9.73706, 52.37596]
+            [
+              9.73703,
+              52.37619
+            ],
+            [
+              9.7371,
+              52.37599
+            ],
+            [
+              9.73706,
+              52.37596
+            ]
           ]
         }
       },
       {
         "type": "Feature",
-        "properties": { "name": "Osterstraße", "kind": "tertiary" },
+        "properties": {
+          "name": "Osterstraße",
+          "kind": "tertiary"
+        },
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [9.73470, 52.37355], [9.73482, 52.37357], [9.73517, 52.37360],
-            [9.73526, 52.37360], [9.73544, 52.37359], [9.73618, 52.37336],
-            [9.73650, 52.37326], [9.73690, 52.37305]
+            [
+              9.7347,
+              52.37355
+            ],
+            [
+              9.73482,
+              52.37357
+            ],
+            [
+              9.73517,
+              52.3736
+            ],
+            [
+              9.73526,
+              52.3736
+            ],
+            [
+              9.73544,
+              52.37359
+            ],
+            [
+              9.73618,
+              52.37336
+            ],
+            [
+              9.7365,
+              52.37326
+            ],
+            [
+              9.7369,
+              52.37305
+            ]
           ]
         }
       },
       {
         "type": "Feature",
-        "properties": { "name": "Seilwinderstraße", "kind": "tertiary" },
+        "properties": {
+          "name": "Seilwinderstraße",
+          "kind": "tertiary"
+        },
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [9.73542, 52.37227], [9.73557, 52.37233], [9.73607, 52.37252],
-            [9.73646, 52.37271], [9.73683, 52.37297], [9.73690, 52.37305]
+            [
+              9.73542,
+              52.37227
+            ],
+            [
+              9.73557,
+              52.37233
+            ],
+            [
+              9.73607,
+              52.37252
+            ],
+            [
+              9.73646,
+              52.37271
+            ],
+            [
+              9.73683,
+              52.37297
+            ],
+            [
+              9.7369,
+              52.37305
+            ]
           ]
         }
       },
       {
         "type": "Feature",
-        "properties": { "name": "Kurt-Schumacher-Straße", "kind": "primary" },
+        "properties": {
+          "name": "Kurt-Schumacher-Straße",
+          "kind": "primary"
+        },
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [9.7386, 52.3766], [9.7375, 52.3772], [9.7360, 52.3780],
-            [9.7345, 52.3788], [9.7330, 52.3795]
+            [
+              9.7386,
+              52.3766
+            ],
+            [
+              9.7375,
+              52.3772
+            ],
+            [
+              9.736,
+              52.378
+            ],
+            [
+              9.7345,
+              52.3788
+            ],
+            [
+              9.733,
+              52.3795
+            ]
           ]
         }
       },
       {
         "type": "Feature",
-        "properties": { "name": "Schillerstraße", "kind": "secondary" },
+        "properties": {
+          "name": "Schillerstraße",
+          "kind": "secondary"
+        },
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [9.7392, 52.3748], [9.7408, 52.3755], [9.7425, 52.3762],
-            [9.7445, 52.3770], [9.7465, 52.3778]
+            [
+              9.7392,
+              52.3748
+            ],
+            [
+              9.7408,
+              52.3755
+            ],
+            [
+              9.7425,
+              52.3762
+            ],
+            [
+              9.7445,
+              52.377
+            ],
+            [
+              9.7465,
+              52.3778
+            ]
           ]
         }
       },
       {
         "type": "Feature",
-        "properties": { "name": "Celler Straße", "kind": "secondary" },
+        "properties": {
+          "name": "Celler Straße",
+          "kind": "secondary"
+        },
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [9.7477, 52.3800], [9.7490, 52.3815], [9.7505, 52.3830],
-            [9.7520, 52.3845], [9.7535, 52.3860]
+            [
+              9.7477,
+              52.38
+            ],
+            [
+              9.749,
+              52.3815
+            ],
+            [
+              9.7505,
+              52.383
+            ],
+            [
+              9.752,
+              52.3845
+            ],
+            [
+              9.7535,
+              52.386
+            ]
           ]
         }
       },
       {
         "type": "Feature",
-        "properties": { "name": "Aegidientorplatz-Ring", "kind": "secondary" },
+        "properties": {
+          "name": "Aegidientorplatz-Ring",
+          "kind": "secondary"
+        },
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [9.7411, 52.3701], [9.7418, 52.3695], [9.7425, 52.3690],
-            [9.7430, 52.3692], [9.7422, 52.3698], [9.7411, 52.3701]
+            [
+              9.7411,
+              52.3701
+            ],
+            [
+              9.7418,
+              52.3695
+            ],
+            [
+              9.7425,
+              52.369
+            ],
+            [
+              9.743,
+              52.3692
+            ],
+            [
+              9.7422,
+              52.3698
+            ],
+            [
+              9.7411,
+              52.3701
+            ]
           ]
         }
       },
       {
         "type": "Feature",
-        "properties": { "name": "Leinstraße", "kind": "tertiary" },
+        "properties": {
+          "name": "Leinstraße",
+          "kind": "tertiary"
+        },
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [9.7330, 52.3720], [9.7335, 52.3715], [9.7340, 52.3710],
-            [9.7345, 52.3705], [9.7350, 52.3700]
+            [
+              9.733,
+              52.372
+            ],
+            [
+              9.7335,
+              52.3715
+            ],
+            [
+              9.734,
+              52.371
+            ],
+            [
+              9.7345,
+              52.3705
+            ],
+            [
+              9.735,
+              52.37
+            ]
           ]
         }
       },
       {
         "type": "Feature",
-        "properties": { "name": "Calenberger Straße", "kind": "secondary" },
+        "properties": {
+          "name": "Calenberger Straße",
+          "kind": "secondary"
+        },
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [9.7330, 52.3720], [9.7315, 52.3715], [9.7300, 52.3708],
-            [9.7285, 52.3700], [9.7270, 52.3692]
+            [
+              9.733,
+              52.372
+            ],
+            [
+              9.7315,
+              52.3715
+            ],
+            [
+              9.73,
+              52.3708
+            ],
+            [
+              9.7285,
+              52.37
+            ],
+            [
+              9.727,
+              52.3692
+            ]
           ]
         }
       },
       {
         "type": "Feature",
-        "properties": { "name": "Hildesheimer Straße", "kind": "primary" },
+        "properties": {
+          "name": "Hildesheimer Straße",
+          "kind": "primary"
+        },
         "geometry": {
           "type": "LineString",
           "coordinates": [
-            [9.7411, 52.3701], [9.7420, 52.3685], [9.7430, 52.3670],
-            [9.7440, 52.3655], [9.7450, 52.3640]
+            [
+              9.7411,
+              52.3701
+            ],
+            [
+              9.742,
+              52.3685
+            ],
+            [
+              9.743,
+              52.367
+            ],
+            [
+              9.744,
+              52.3655
+            ],
+            [
+              9.745,
+              52.364
+            ]
           ]
         }
       }
@@ -288,22 +839,4008 @@
   "pois": {
     "type": "FeatureCollection",
     "features": [
-      { "type": "Feature", "properties": { "name": "Hauptbahnhof", "category": "transit" }, "geometry": { "type": "Point", "coordinates": [9.7386, 52.3766] } },
-      { "type": "Feature", "properties": { "name": "Kröpcke", "category": "landmark" }, "geometry": { "type": "Point", "coordinates": [9.7392, 52.3748] } },
-      { "type": "Feature", "properties": { "name": "Neues Rathaus", "category": "landmark" }, "geometry": { "type": "Point", "coordinates": [9.7361, 52.3665] } },
-      { "type": "Feature", "properties": { "name": "Maschsee", "category": "park" }, "geometry": { "type": "Point", "coordinates": [9.7355, 52.3608] } },
-      { "type": "Feature", "properties": { "name": "Eilenriede", "category": "park" }, "geometry": { "type": "Point", "coordinates": [9.7601, 52.3811] } },
-      { "type": "Feature", "properties": { "name": "Lister Meile", "category": "shopping" }, "geometry": { "type": "Point", "coordinates": [9.7477, 52.3838] } },
-      { "type": "Feature", "properties": { "name": "Steintor", "category": "nightlife" }, "geometry": { "type": "Point", "coordinates": [9.7477, 52.3737] } },
-      { "type": "Feature", "properties": { "name": "Aegidientorplatz", "category": "transit" }, "geometry": { "type": "Point", "coordinates": [9.7411, 52.3701] } },
-      { "type": "Feature", "properties": { "name": "Cafe am Kröpcke", "category": "cafe" }, "geometry": { "type": "Point", "coordinates": [9.7397, 52.3745] } },
-      { "type": "Feature", "properties": { "name": "Tankstelle Hamburger Allee", "category": "fuel" }, "geometry": { "type": "Point", "coordinates": [9.7440, 52.3780] } },
-      { "type": "Feature", "properties": { "name": "Supermarkt List", "category": "shop" }, "geometry": { "type": "Point", "coordinates": [9.7500, 52.3820] } },
-      { "type": "Feature", "properties": { "name": "MHH-Zufahrt", "category": "hospital" }, "geometry": { "type": "Point", "coordinates": [9.7601, 52.3860] } },
-      { "type": "Feature", "properties": { "name": "Opernhaus", "category": "landmark" }, "geometry": { "type": "Point", "coordinates": [9.7415, 52.3735] } },
-      { "type": "Feature", "properties": { "name": "Markthalle", "category": "shopping" }, "geometry": { "type": "Point", "coordinates": [9.7365, 52.3728] } },
-      { "type": "Feature", "properties": { "name": "Ernst-August-Platz", "category": "landmark" }, "geometry": { "type": "Point", "coordinates": [9.7389, 52.3762] } },
-      { "type": "Feature", "properties": { "name": "Leineschloss", "category": "landmark" }, "geometry": { "type": "Point", "coordinates": [9.7338, 52.3705] } }
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "Hauptbahnhof",
+          "category": "transit"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            9.7386,
+            52.3766
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "Kröpcke",
+          "category": "landmark"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            9.7392,
+            52.3748
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "Neues Rathaus",
+          "category": "landmark"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            9.7361,
+            52.3665
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "Maschsee",
+          "category": "park"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            9.7355,
+            52.3608
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "Eilenriede",
+          "category": "park"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            9.7601,
+            52.3811
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "Lister Meile",
+          "category": "shopping"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            9.7477,
+            52.3838
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "Steintor",
+          "category": "nightlife"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            9.7477,
+            52.3737
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "Aegidientorplatz",
+          "category": "transit"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            9.7411,
+            52.3701
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "Cafe am Kröpcke",
+          "category": "cafe"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            9.7397,
+            52.3745
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "Tankstelle Hamburger Allee",
+          "category": "fuel"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            9.744,
+            52.378
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "Supermarkt List",
+          "category": "shop"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            9.75,
+            52.382
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "MHH-Zufahrt",
+          "category": "hospital"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            9.7601,
+            52.386
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "Opernhaus",
+          "category": "landmark"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            9.7415,
+            52.3735
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "Markthalle",
+          "category": "shopping"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            9.7365,
+            52.3728
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "Ernst-August-Platz",
+          "category": "landmark"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            9.7389,
+            52.3762
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "Leineschloss",
+          "category": "landmark"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            9.7338,
+            52.3705
+          ]
+        }
+      }
+    ]
+  },
+  "buildings": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b1",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.738254707265318,
+                52.37628472506789
+              ],
+              [
+                9.73832516181346,
+                52.3761438159716
+              ],
+              [
+                9.738503597347362,
+                52.3761770659912
+              ],
+              [
+                9.73843314279922,
+                52.37631797508749
+              ],
+              [
+                9.738254707265318,
+                52.37628472506789
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b2",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.739115104848855,
+                52.37649142476739
+              ],
+              [
+                9.739227978712401,
+                52.376265677040294
+              ],
+              [
+                9.73938339982516,
+                52.37629463850852
+              ],
+              [
+                9.739270525961613,
+                52.37652038623561
+              ],
+              [
+                9.739115104848855,
+                52.37649142476739
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b3",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.738531682032782,
+                52.37542212493282
+              ],
+              [
+                9.738566089154082,
+                52.37528449644762
+              ],
+              [
+                9.738799766922035,
+                52.375306268429334
+              ],
+              [
+                9.738765359800736,
+                52.37544389691453
+              ],
+              [
+                9.738531682032782,
+                52.37542212493282
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b4",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.738911076078308,
+                52.374363716187034
+              ],
+              [
+                9.738757575644144,
+                52.37428696596995
+              ],
+              [
+                9.738861634762072,
+                52.37420940366755
+              ],
+              [
+                9.739015135196237,
+                52.37428615388463
+              ],
+              [
+                9.738911076078308,
+                52.374363716187034
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b5",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.737133143045718,
+                52.374275512350245
+              ],
+              [
+                9.736849522701728,
+                52.37413370217825
+              ],
+              [
+                9.737024407093259,
+                52.37400334900659
+              ],
+              [
+                9.737308027437248,
+                52.37414515917859
+              ],
+              [
+                9.737133143045718,
+                52.374275512350245
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b6",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.737794718308066,
+                52.37373378543219
+              ],
+              [
+                9.73758916343262,
+                52.37363100799447
+              ],
+              [
+                9.737744166752531,
+                52.373515473530865
+              ],
+              [
+                9.737949721627977,
+                52.37361825096858
+              ],
+              [
+                9.737794718308066,
+                52.37373378543219
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b7",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.736240684515778,
+                52.37383360404974
+              ],
+              [
+                9.735930117053812,
+                52.373700503708896
+              ],
+              [
+                9.736073241652921,
+                52.373576043184904
+              ],
+              [
+                9.736383809114887,
+                52.37370914352575
+              ],
+              [
+                9.736240684515778,
+                52.37383360404974
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b8",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.74033023443698,
+                52.37264654805962
+              ],
+              [
+                9.740381193564987,
+                52.37244271154759
+              ],
+              [
+                9.740673783807745,
+                52.372469972461076
+              ],
+              [
+                9.740622824679738,
+                52.372673808973104
+              ],
+              [
+                9.74033023443698,
+                52.37264654805962
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b9",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.741217058646836,
+                52.37268173848393
+              ],
+              [
+                9.741244839736014,
+                52.37257061412721
+              ],
+              [
+                9.741445368696343,
+                52.37258929760274
+              ],
+              [
+                9.741417587607165,
+                52.37270042195945
+              ],
+              [
+                9.741217058646836,
+                52.37268173848393
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b10",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.733925663028062,
+                52.3718547934505
+              ],
+              [
+                9.734139998862705,
+                52.37174048100536
+              ],
+              [
+                9.734267583445297,
+                52.37182963483962
+              ],
+              [
+                9.734053247610653,
+                52.37194394728476
+              ],
+              [
+                9.733925663028062,
+                52.3718547934505
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b11",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.735374940549056,
+                52.37081888866364
+              ],
+              [
+                9.735583570960618,
+                52.37067545525569
+              ],
+              [
+                9.735812147156475,
+                52.37079936311519
+              ],
+              [
+                9.735603516744913,
+                52.37094279652314
+              ],
+              [
+                9.735374940549056,
+                52.37081888866364
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b12",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.736636551213676,
+                52.36958540236916
+              ],
+              [
+                9.73700199049879,
+                52.36947000048965
+              ],
+              [
+                9.737110935661983,
+                52.369598573810414
+              ],
+              [
+                9.73674549637687,
+                52.369713975689926
+              ],
+              [
+                9.736636551213676,
+                52.36958540236916
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b13",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.735475055254241,
+                52.36938423715176
+              ],
+              [
+                9.735475055254241,
+                52.36921576284823
+              ],
+              [
+                9.735633421611919,
+                52.36921576284823
+              ],
+              [
+                9.735633421611919,
+                52.36938423715176
+              ],
+              [
+                9.735475055254241,
+                52.36938423715176
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b14",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.73652848576324,
+                52.36939192341682
+              ],
+              [
+                9.73652848576324,
+                52.36920807658317
+              ],
+              [
+                9.736847106037546,
+                52.36920807658317
+              ],
+              [
+                9.736847106037546,
+                52.36939192341682
+              ],
+              [
+                9.73652848576324,
+                52.36939192341682
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b15",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.736454131664356,
+                52.36759996132221
+              ],
+              [
+                9.736454131664356,
+                52.367400038677786
+              ],
+              [
+                9.736620978109421,
+                52.367400038677786
+              ],
+              [
+                9.736620978109421,
+                52.36759996132221
+              ],
+              [
+                9.736454131664356,
+                52.36759996132221
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b16",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.735650891584488,
+                52.36571678078068
+              ],
+              [
+                9.735707927146116,
+                52.36547437964376
+              ],
+              [
+                9.736006666446897,
+                52.365500576186925
+              ],
+              [
+                9.735949630885269,
+                52.36574297732385
+              ],
+              [
+                9.735650891584488,
+                52.36571678078068
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b17",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.736155475223045,
+                52.363959643214834
+              ],
+              [
+                9.736220921213222,
+                52.3637240376502
+              ],
+              [
+                9.736517550019657,
+                52.36375474563946
+              ],
+              [
+                9.73645210402948,
+                52.363990351204095
+              ],
+              [
+                9.736155475223045,
+                52.363959643214834
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b18",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.736190073826274,
+                52.362553896663016
+              ],
+              [
+                9.736137673747796,
+                52.36242813647467
+              ],
+              [
+                9.736410769028586,
+                52.36238572889269
+              ],
+              [
+                9.736463169107063,
+                52.36251148908104
+              ],
+              [
+                9.736190073826274,
+                52.362553896663016
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b19",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.737199253195755,
+                52.36242518027529
+              ],
+              [
+                9.737124942479285,
+                52.36224683455576
+              ],
+              [
+                9.737267647883918,
+                52.36222467455678
+              ],
+              [
+                9.737341958600387,
+                52.362403020276304
+              ],
+              [
+                9.737199253195755,
+                52.36242518027529
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b20",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.735261847966598,
+                52.360315372059574
+              ],
+              [
+                9.735209899610211,
+                52.360090262515236
+              ],
+              [
+                9.73540937890471,
+                52.36007310650555
+              ],
+              [
+                9.735461327261095,
+                52.36029821604989
+              ],
+              [
+                9.735261847966598,
+                52.360315372059574
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b21",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.734960119927653,
+                52.35884204915703
+              ],
+              [
+                9.734944158278102,
+                52.3587223367854
+              ],
+              [
+                9.73517635452949,
+                52.35871079868012
+              ],
+              [
+                9.73519231617904,
+                52.35883051105176
+              ],
+              [
+                9.734960119927653,
+                52.35884204915703
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b22",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.741549752432299,
+                52.37034112689692
+              ],
+              [
+                9.74192168693272,
+                52.37039426039698
+              ],
+              [
+                9.74187113413543,
+                52.370526141869746
+              ],
+              [
+                9.741499199635008,
+                52.370473008369686
+              ],
+              [
+                9.741549752432299,
+                52.37034112689692
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b23",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.743057879581047,
+                52.370616657214924
+              ],
+              [
+                9.74327665932541,
+                52.370645827847504
+              ],
+              [
+                9.743233516196051,
+                52.37076641844949
+              ],
+              [
+                9.743014736451688,
+                52.37073724781691
+              ],
+              [
+                9.743057879581047,
+                52.370616657214924
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b24",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.744801269740538,
+                52.37028021177409
+              ],
+              [
+                9.745067091839154,
+                52.37033337619381
+              ],
+              [
+                9.744992826667762,
+                52.37047176333846
+              ],
+              [
+                9.744727004569146,
+                52.37041859891873
+              ],
+              [
+                9.744801269740538,
+                52.37028021177409
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b25",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.740263659951491,
+                52.37545516145583
+              ],
+              [
+                9.740360286839904,
+                52.37558151969453
+              ],
+              [
+                9.740215592775716,
+                52.375622756565406
+              ],
+              [
+                9.740118965887303,
+                52.37549639832671
+              ],
+              [
+                9.740263659951491,
+                52.37545516145583
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b26",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.743193391219867,
+                52.37851046631967
+              ],
+              [
+                9.743301630186332,
+                52.37861870528613
+              ],
+              [
+                9.743035040759713,
+                52.37871805885618
+              ],
+              [
+                9.742926801793248,
+                52.37860981988972
+              ],
+              [
+                9.743193391219867,
+                52.37851046631967
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b27",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.742369859699847,
+                52.37876246017747
+              ],
+              [
+                9.74255812150393,
+                52.37895072198155
+              ],
+              [
+                9.742310826019798,
+                52.37904288501112
+              ],
+              [
+                9.742122564215716,
+                52.37885462320703
+              ],
+              [
+                9.742369859699847,
+                52.37876246017747
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b28",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.747052615965075,
+                52.382387370488686
+              ],
+              [
+                9.74719710326995,
+                52.38253842539832
+              ],
+              [
+                9.746958859675804,
+                52.38262335452018
+              ],
+              [
+                9.746814372370928,
+                52.38247229961054
+              ],
+              [
+                9.747052615965075,
+                52.382387370488686
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b29",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.746138403741496,
+                52.38274394452219
+              ],
+              [
+                9.746239129400415,
+                52.38284924862015
+              ],
+              [
+                9.746050665153644,
+                52.38291643239076
+              ],
+              [
+                9.745949939494725,
+                52.3828111282928
+              ],
+              [
+                9.746138403741496,
+                52.38274394452219
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b30",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.749281250324374,
+                52.38382689943795
+              ],
+              [
+                9.749500196885194,
+                52.38380699520515
+              ],
+              [
+                9.749533538151931,
+                52.38394367846806
+              ],
+              [
+                9.749314591591112,
+                52.38396358270086
+              ],
+              [
+                9.749281250324374,
+                52.38382689943795
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b31",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.752774185267324,
+                52.382934928253114
+              ],
+              [
+                9.753004793114728,
+                52.38290610227219
+              ],
+              [
+                9.753067013366092,
+                52.38309161012766
+              ],
+              [
+                9.752836405518687,
+                52.383120436108584
+              ],
+              [
+                9.752774185267324,
+                52.382934928253114
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b32",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.752937868402487,
+                52.383530607889554
+              ],
+              [
+                9.753237791674502,
+                52.383493117480555
+              ],
+              [
+                9.753269100943243,
+                52.383586465147474
+              ],
+              [
+                9.752969177671227,
+                52.38362395555647
+              ],
+              [
+                9.752937868402487,
+                52.383530607889554
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b33",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.75576155655079,
+                52.38229722966132
+              ],
+              [
+                9.756120013157306,
+                52.382182523547236
+              ],
+              [
+                9.75626427163119,
+                52.382350532301515
+              ],
+              [
+                9.755905815024674,
+                52.3824652384156
+              ],
+              [
+                9.75576155655079,
+                52.38229722966132
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b34",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.756251281382104,
+                52.38279276121513
+              ],
+              [
+                9.756508945540954,
+                52.382710308684295
+              ],
+              [
+                9.756594784165111,
+                52.382810279520854
+              ],
+              [
+                9.756337120006261,
+                52.38289273205169
+              ],
+              [
+                9.756251281382104,
+                52.38279276121513
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b35",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.73989590966219,
+                52.37653458353611
+              ],
+              [
+                9.74015148043776,
+                52.37659847623
+              ],
+              [
+                9.740031654083984,
+                52.37677710561054
+              ],
+              [
+                9.739776083308413,
+                52.376713212916655
+              ],
+              [
+                9.73989590966219,
+                52.37653458353611
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b36",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.739501447619256,
+                52.37706660440459
+              ],
+              [
+                9.739821379287427,
+                52.37714658732163
+              ],
+              [
+                9.739755255829719,
+                52.377245159897015
+              ],
+              [
+                9.739435324161548,
+                52.37716517697997
+              ],
+              [
+                9.739501447619256,
+                52.37706660440459
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b37",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.74462937799619,
+                52.378594472962746
+              ],
+              [
+                9.74492130254403,
+                52.378740435236665
+              ],
+              [
+                9.744810450144119,
+                52.37882306103184
+              ],
+              [
+                9.744518525596279,
+                52.37867709875792
+              ],
+              [
+                9.74462937799619,
+                52.378594472962746
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b38",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.747104458322484,
+                52.379241859802484
+              ],
+              [
+                9.747263117865291,
+                52.37933518894531
+              ],
+              [
+                9.747088111484635,
+                52.37944606642896
+              ],
+              [
+                9.746929451941828,
+                52.37935273728613
+              ],
+              [
+                9.747104458322484,
+                52.379241859802484
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b39",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.746613396277095,
+                52.37955980765355
+              ],
+              [
+                9.746760876648123,
+                52.37964656081297
+              ],
+              [
+                9.74654969541313,
+                52.379780357328514
+              ],
+              [
+                9.746402215042101,
+                52.37969360416909
+              ],
+              [
+                9.746613396277095,
+                52.37955980765355
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b40",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.740298940692684,
+                52.374797271718805
+              ],
+              [
+                9.740563687218348,
+                52.37475122884477
+              ],
+              [
+                9.740632240290497,
+                52.374898133420544
+              ],
+              [
+                9.740367493764833,
+                52.374944176294576
+              ],
+              [
+                9.740298940692684,
+                52.374797271718805
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b41",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.742483221018558,
+                52.37384909382448
+              ],
+              [
+                9.742700549577322,
+                52.37381432125508
+              ],
+              [
+                9.742769917715359,
+                52.37397589865355
+              ],
+              [
+                9.742552589156595,
+                52.37401067122295
+              ],
+              [
+                9.742483221018558,
+                52.37384909382448
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b42",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.744791673169539,
+                52.37359039322776
+              ],
+              [
+                9.745035631030683,
+                52.373565997441645
+              ],
+              [
+                9.745068442876699,
+                52.37368828188792
+              ],
+              [
+                9.744824485015554,
+                52.373712677674035
+              ],
+              [
+                9.744791673169539,
+                52.37359039322776
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b43",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.746698164497323,
+                52.37350969720607
+              ],
+              [
+                9.746923882170213,
+                52.3734964196959
+              ],
+              [
+                9.74694248697673,
+                52.37361429277701
+              ],
+              [
+                9.74671676930384,
+                52.373627570287184
+              ],
+              [
+                9.746698164497323,
+                52.37350969720607
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b44",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.746694533799253,
+                52.37398580027332
+              ],
+              [
+                9.747076357441594,
+                52.37396334005906
+              ],
+              [
+                9.747096729128362,
+                52.374092407431235
+              ],
+              [
+                9.746714905486021,
+                52.37411486764549
+              ],
+              [
+                9.746694533799253,
+                52.37398580027332
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b45",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.734521268725974,
+                52.36029484889618
+              ],
+              [
+                9.734237322563205,
+                52.36020398612409
+              ],
+              [
+                9.73438657077757,
+                52.36003016613349
+              ],
+              [
+                9.734670516940339,
+                52.36012102890558
+              ],
+              [
+                9.734521268725974,
+                52.36029484889618
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b46",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.73147217753321,
+                52.35976610624872
+              ],
+              [
+                9.731148349846329,
+                52.359658163686426
+              ],
+              [
+                9.731244202774771,
+                52.35955099517533
+              ],
+              [
+                9.731568030461652,
+                52.35965893773763
+              ],
+              [
+                9.73147217753321,
+                52.35976610624872
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b47",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.731784956553389,
+                52.359314010138554
+              ],
+              [
+                9.731602225910487,
+                52.35925309992425
+              ],
+              [
+                9.731682512523138,
+                52.359163335355994
+              ],
+              [
+                9.73186524316604,
+                52.359224245570296
+              ],
+              [
+                9.731784956553389,
+                52.359314010138554
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b48",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.729515305665025,
+                52.35826519890077
+              ],
+              [
+                9.729349099827001,
+                52.35809899306274
+              ],
+              [
+                9.72958284844566,
+                52.35801187873096
+              ],
+              [
+                9.729749054283683,
+                52.35817808456899
+              ],
+              [
+                9.729515305665025,
+                52.35826519890077
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b49",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.728470327927601,
+                52.356813460240375
+              ],
+              [
+                9.728412181641428,
+                52.35663902138185
+              ],
+              [
+                9.728713027583458,
+                52.35660164790865
+              ],
+              [
+                9.728771173869632,
+                52.35677608676717
+              ],
+              [
+                9.728470327927601,
+                52.356813460240375
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b50",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.74208840203511,
+                52.37241804843141
+              ],
+              [
+                9.742363456962213,
+                52.3724020258143
+              ],
+              [
+                9.742382075329248,
+                52.372521141270525
+              ],
+              [
+                9.742107020402145,
+                52.372537163887635
+              ],
+              [
+                9.74208840203511,
+                52.37241804843141
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b51",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.74273587365304,
+                52.37228534519644
+              ],
+              [
+                9.742974126346958,
+                52.37228534519644
+              ],
+              [
+                9.742974126346958,
+                52.37245507903493
+              ],
+              [
+                9.74273587365304,
+                52.37245507903493
+              ],
+              [
+                9.74273587365304,
+                52.37228534519644
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b52",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.742765572453575,
+                52.37281447856365
+              ],
+              [
+                9.742944427546423,
+                52.37281447856365
+              ],
+              [
+                9.742944427546423,
+                52.37291242076919
+              ],
+              [
+                9.742765572453575,
+                52.37291242076919
+              ],
+              [
+                9.742765572453575,
+                52.37281447856365
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b53",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.74305797632007,
+                52.37223745433603
+              ],
+              [
+                9.74336160121317,
+                52.3722195940482
+              ],
+              [
+                9.743389849306912,
+                52.37239856338293
+              ],
+              [
+                9.743086224413812,
+                52.372416423670764
+              ],
+              [
+                9.74305797632007,
+                52.37223745433603
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b54",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.743188670049847,
+                52.37275217427487
+              ],
+              [
+                9.743394301648209,
+                52.3727400782985
+              ],
+              [
+                9.743413635685442,
+                52.37286257151212
+              ],
+              [
+                9.74320800408708,
+                52.372874667488496
+              ],
+              [
+                9.743188670049847,
+                52.37275217427487
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b55",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.74351946067896,
+                52.372220932591915
+              ],
+              [
+                9.74389519672527,
+                52.37218962125472
+              ],
+              [
+                9.743936567134181,
+                52.3723746382468
+              ],
+              [
+                9.743560831087873,
+                52.37240594958399
+              ],
+              [
+                9.74351946067896,
+                52.372220932591915
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b56",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.742142038729256,
+                52.3741783878704
+              ],
+              [
+                9.741875317404123,
+                52.37414504770475
+              ],
+              [
+                9.7419268191573,
+                52.373991496737446
+              ],
+              [
+                9.742193540482432,
+                52.3740248369031
+              ],
+              [
+                9.742142038729256,
+                52.3741783878704
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b57",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.742113207223122,
+                52.374157013205775
+              ],
+              [
+                9.74170679277688,
+                52.374157013205775
+              ],
+              [
+                9.74170679277688,
+                52.373979783052704
+              ],
+              [
+                9.742113207223122,
+                52.373979783052704
+              ],
+              [
+                9.742113207223122,
+                52.374157013205775
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b58",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.742084996861633,
+                52.3736600404576
+              ],
+              [
+                9.741735003138368,
+                52.3736600404576
+              ],
+              [
+                9.741735003138368,
+                52.37353440062994
+              ],
+              [
+                9.742084996861633,
+                52.37353440062994
+              ],
+              [
+                9.742084996861633,
+                52.3736600404576
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b59",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.742060048794146,
+                52.37413508758
+              ],
+              [
+                9.741683528607686,
+                52.37416646426222
+              ],
+              [
+                9.741644264033523,
+                52.373990864997026
+              ],
+              [
+                9.742020784219983,
+                52.37395948831481
+              ],
+              [
+                9.742060048794146,
+                52.37413508758
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b60",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.739289298237678,
+                52.37025291127479
+              ],
+              [
+                9.739523708733746,
+                52.37030314209538
+              ],
+              [
+                9.739428458579775,
+                52.3704688003281
+              ],
+              [
+                9.739194048083707,
+                52.37041856950751
+              ],
+              [
+                9.739289298237678,
+                52.37025291127479
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b61",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.740582028291483,
+                52.37110700359427
+              ],
+              [
+                9.740799865320087,
+                52.371171765954124
+              ],
+              [
+                9.740685844780346,
+                52.37131469901298
+              ],
+              [
+                9.740468007751742,
+                52.37124993665312
+              ],
+              [
+                9.740582028291483,
+                52.37110700359427
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b62",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.736604229595512,
+                52.376155746485814
+              ],
+              [
+                9.736688477703845,
+                52.37591503760486
+              ],
+              [
+                9.7368782192114,
+                52.37593978736235
+              ],
+              [
+                9.736793971103067,
+                52.3761804962433
+              ],
+              [
+                9.736604229595512,
+                52.376155746485814
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b63",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.737393867808215,
+                52.37594196035548
+              ],
+              [
+                9.737196700744922,
+                52.375794085058004
+              ],
+              [
+                9.737345706046852,
+                52.37572004256807
+              ],
+              [
+                9.737542873110145,
+                52.37586791786555
+              ],
+              [
+                9.737393867808215,
+                52.37594196035548
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b64",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.734508750715857,
+                52.37373417890162
+              ],
+              [
+                9.734831412003802,
+                52.373787955782944
+              ],
+              [
+                9.734775718893715,
+                52.373912491314265
+              ],
+              [
+                9.734453057605771,
+                52.37385871443294
+              ],
+              [
+                9.734508750715857,
+                52.37373417890162
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b65",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.734841235814853,
+                52.37370366781714
+              ],
+              [
+                9.735089288879468,
+                52.37372492950839
+              ],
+              [
+                9.735048008910029,
+                52.373904413910736
+              ],
+              [
+                9.734799955845414,
+                52.373883152219484
+              ],
+              [
+                9.734841235814853,
+                52.37370366781714
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b66",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.73509030208411,
+                52.37331564077249
+              ],
+              [
+                9.73533969791589,
+                52.37331564077249
+              ],
+              [
+                9.73533969791589,
+                52.373449495559626
+              ],
+              [
+                9.73509030208411,
+                52.373449495559626
+              ],
+              [
+                9.73509030208411,
+                52.37331564077249
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b67",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.735111726570223,
+                52.37374926782997
+              ],
+              [
+                9.735318273429778,
+                52.37374926782997
+              ],
+              [
+                9.735318273429778,
+                52.37388442194429
+              ],
+              [
+                9.735111726570223,
+                52.37388442194429
+              ],
+              [
+                9.735111726570223,
+                52.37374926782997
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b68",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.73510532352295,
+                52.373264240890585
+              ],
+              [
+                9.735492855323713,
+                52.37324271134609
+              ],
+              [
+                9.735516041384253,
+                52.3733982506056
+              ],
+              [
+                9.73512850958349,
+                52.373419780150094
+              ],
+              [
+                9.73510532352295,
+                52.373264240890585
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b69",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.735826167159608,
+                52.3736868329668
+              ],
+              [
+                9.736081084564798,
+                52.3736076018814
+              ],
+              [
+                9.736183270861101,
+                52.37373013037633
+              ],
+              [
+                9.735928353455911,
+                52.373809361461724
+              ],
+              [
+                9.735826167159608,
+                52.3736868329668
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b70",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.73678496590621,
+                52.37333492124364
+              ],
+              [
+                9.736978679857444,
+                52.37323322141924
+              ],
+              [
+                9.73716885432372,
+                52.373368221323105
+              ],
+              [
+                9.736975140372486,
+                52.3734699211475
+              ],
+              [
+                9.73678496590621,
+                52.37333492124364
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b71",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.735686243274742,
+                52.37199401526764
+              ],
+              [
+                9.735878179325164,
+                52.372070789687804
+              ],
+              [
+                9.735778262733476,
+                52.372163882934395
+              ],
+              [
+                9.735586326683054,
+                52.37208710851423
+              ],
+              [
+                9.735686243274742,
+                52.37199401526764
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b72",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.73554795595647,
+                52.37257990822501
+              ],
+              [
+                9.735712421712961,
+                52.37264240521248
+              ],
+              [
+                9.735595988485052,
+                52.37275659674399
+              ],
+              [
+                9.735431522728561,
+                52.37269409975652
+              ],
+              [
+                9.73554795595647,
+                52.37257990822501
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b73",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.736413591255763,
+                52.372334691045175
+              ],
+              [
+                9.736679753645662,
+                52.37246435990179
+              ],
+              [
+                9.736533517281474,
+                52.372576228177344
+              ],
+              [
+                9.736267354891575,
+                52.37244655932073
+              ],
+              [
+                9.736413591255763,
+                52.372334691045175
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b74",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.737167044666016,
+                52.372772346952054
+              ],
+              [
+                9.73735650823922,
+                52.37298887674999
+              ],
+              [
+                9.737146043989693,
+                52.3730575087958
+              ],
+              [
+                9.73695658041649,
+                52.372840978997864
+              ],
+              [
+                9.737167044666016,
+                52.372772346952054
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b75",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.73795691803344,
+                52.376669065038364
+              ],
+              [
+                9.737684540331882,
+                52.37681763469376
+              ],
+              [
+                9.737507957846091,
+                52.376696984057226
+              ],
+              [
+                9.737780335547649,
+                52.37654841440183
+              ],
+              [
+                9.73795691803344,
+                52.376669065038364
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b76",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.737333317327321,
+                52.37782191591815
+              ],
+              [
+                9.737031891302601,
+                52.37798267646466
+              ],
+              [
+                9.736831517977942,
+                52.37784265915367
+              ],
+              [
+                9.737132944002662,
+                52.37768189860716
+              ],
+              [
+                9.737333317327321,
+                52.37782191591815
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b77",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.736608690982507,
+                52.37736419597528
+              ],
+              [
+                9.736386212169513,
+                52.37748285134221
+              ],
+              [
+                9.736192908857948,
+                52.37734777443047
+              ],
+              [
+                9.736415387670942,
+                52.37722911906354
+              ],
+              [
+                9.736608690982507,
+                52.37736419597528
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b78",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.73583171194861,
+                52.3786433375132
+              ],
+              [
+                9.735566878929427,
+                52.3787845817901
+              ],
+              [
+                9.735414921568307,
+                52.37867839669223
+              ],
+              [
+                9.735679754587489,
+                52.37853715241533
+              ],
+              [
+                9.73583171194861,
+                52.3786433375132
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b79",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.73361902386609,
+                52.37889496467332
+              ],
+              [
+                9.733381230938576,
+                52.379005934706164
+              ],
+              [
+                9.733224654685774,
+                52.37888089162374
+              ],
+              [
+                9.733462447613288,
+                52.378769921590894
+              ],
+              [
+                9.73361902386609,
+                52.37889496467332
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b80",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.743276173096634,
+                52.37667987196643
+              ],
+              [
+                9.743469412984338,
+                52.37675716792152
+              ],
+              [
+                9.743321610218393,
+                52.37689487717584
+              ],
+              [
+                9.74312837033069,
+                52.376817581220756
+              ],
+              [
+                9.743276173096634,
+                52.37667987196643
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b81",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.745645332468678,
+                52.37711280001135
+              ],
+              [
+                9.74587329858864,
+                52.377203986459335
+              ],
+              [
+                9.745740141616666,
+                52.37732805008698
+              ],
+              [
+                9.745512175496705,
+                52.377236863639
+              ],
+              [
+                9.745645332468678,
+                52.37711280001135
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b82",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.745260049738583,
+                52.37747012675114
+              ],
+              [
+                9.745490486178454,
+                52.37756230132709
+              ],
+              [
+                9.745322274670205,
+                52.377719025602325
+              ],
+              [
+                9.745091838230334,
+                52.37762685102638
+              ],
+              [
+                9.745260049738583,
+                52.37747012675114
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b83",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.748812126666817,
+                52.380470103499036
+              ],
+              [
+                9.748989035588385,
+                52.38067422917777
+              ],
+              [
+                9.74873947611636,
+                52.38075483505486
+              ],
+              [
+                9.74856256719479,
+                52.380550709376124
+              ],
+              [
+                9.748812126666817,
+                52.380470103499036
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b84",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.75025393387135,
+                52.38196376267597
+              ],
+              [
+                9.750397345359694,
+                52.38210717416431
+              ],
+              [
+                9.750159089878943,
+                52.38219596813074
+              ],
+              [
+                9.7500156783906,
+                52.3820525566424
+              ],
+              [
+                9.75025393387135,
+                52.38196376267597
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b85",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.749374861867466,
+                52.382308090449676
+              ],
+              [
+                9.749493924198251,
+                52.38242715278046
+              ],
+              [
+                9.74933525968277,
+                52.38248628448067
+              ],
+              [
+                9.749216197351984,
+                52.38236722214989
+              ],
+              [
+                9.749374861867466,
+                52.382308090449676
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b86",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.750929854344713,
+                52.38376681123044
+              ],
+              [
+                9.751079199558347,
+                52.38391615644407
+              ],
+              [
+                9.750934369624671,
+                52.38397013221927
+              ],
+              [
+                9.750785024411037,
+                52.38382078700563
+              ],
+              [
+                9.750929854344713,
+                52.38376681123044
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b87",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.743200480806832,
+                52.36965899997506
+              ],
+              [
+                9.742976910841145,
+                52.369826677449325
+              ],
+              [
+                9.742732742979308,
+                52.369705347562274
+              ],
+              [
+                9.742956312944996,
+                52.36953767008801
+              ],
+              [
+                9.743200480806832,
+                52.36965899997506
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b88",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.733266897983555,
+                52.37118423328397
+              ],
+              [
+                9.733433400412588,
+                52.37101773085494
+              ],
+              [
+                9.733671717683357,
+                52.37110654784951
+              ],
+              [
+                9.733505215254324,
+                52.37127305027854
+              ],
+              [
+                9.733266897983555,
+                52.37118423328397
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b89",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.733711814623774,
+                52.37062167725374
+              ],
+              [
+                9.733817083210978,
+                52.37051640866653
+              ],
+              [
+                9.733946547985457,
+                52.37056465809526
+              ],
+              [
+                9.733841279398254,
+                52.37066992668247
+              ],
+              [
+                9.733711814623774,
+                52.37062167725374
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b90",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.73414332027259,
+                52.370120446343655
+              ],
+              [
+                9.734283987874212,
+                52.369979778742035
+              ],
+              [
+                9.734517345016936,
+                52.370066747177056
+              ],
+              [
+                9.734376677415314,
+                52.370207414778676
+              ],
+              [
+                9.73414332027259,
+                52.370120446343655
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b91",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.732045956371719,
+                52.372105880428
+              ],
+              [
+                9.731869918785568,
+                52.37204720123262
+              ],
+              [
+                9.732005806799235,
+                52.37189527143416
+              ],
+              [
+                9.732181844385385,
+                52.371953950629546
+              ],
+              [
+                9.732045956371719,
+                52.372105880428
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b92",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.732484580220241,
+                52.37161834862652
+              ],
+              [
+                9.732304584685455,
+                52.371558350114924
+              ],
+              [
+                9.732458358804067,
+                52.37138642272989
+              ],
+              [
+                9.732638354338853,
+                52.37144642124149
+              ],
+              [
+                9.732484580220241,
+                52.37161834862652
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b93",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.730546675429824,
+                52.37145181766803
+              ],
+              [
+                9.730326263254303,
+                52.37134895865279
+              ],
+              [
+                9.730455367537157,
+                52.371245854911365
+              ],
+              [
+                9.730675779712678,
+                52.37134871392661
+              ],
+              [
+                9.730546675429824,
+                52.37145181766803
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b94",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.731059054197262,
+                52.371092469346536
+              ],
+              [
+                9.73075985823476,
+                52.37095284456404
+              ],
+              [
+                9.730937408362196,
+                52.37081105157294
+              ],
+              [
+                9.731236604324698,
+                52.37095067635544
+              ],
+              [
+                9.731059054197262,
+                52.371092469346536
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b95",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.729609278271093,
+                52.37032138542096
+              ],
+              [
+                9.729329365105196,
+                52.370172098399145
+              ],
+              [
+                9.729508348666764,
+                52.37004702787369
+              ],
+              [
+                9.729788261832661,
+                52.3701963148955
+              ],
+              [
+                9.729609278271093,
+                52.37032138542096
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b96",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.72751586221832,
+                52.36995099302855
+              ],
+              [
+                9.7272116996419,
+                52.369788772987796
+              ],
+              [
+                9.727339888591791,
+                52.36969919683243
+              ],
+              [
+                9.72764405116821,
+                52.369861416873185
+              ],
+              [
+                9.72751586221832,
+                52.36995099302855
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b97",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.728081255851672,
+                52.369503259616614
+              ],
+              [
+                9.72786255021255,
+                52.369386616609084
+              ],
+              [
+                9.728009965150894,
+                52.369283605675356
+              ],
+              [
+                9.728228670790017,
+                52.36940024868289
+              ],
+              [
+                9.728081255851672,
+                52.369503259616614
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b98",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.740935666786742,
+                52.36929291901248
+              ],
+              [
+                9.741058142165386,
+                52.369075185006004
+              ],
+              [
+                9.741336051172395,
+                52.36913344436552
+              ],
+              [
+                9.74121357579375,
+                52.36935117837199
+              ],
+              [
+                9.740935666786742,
+                52.36929291901248
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b99",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.741927144831644,
+                52.367701918415236
+              ],
+              [
+                9.742034951561786,
+                52.36754020832002
+              ],
+              [
+                9.742271065974796,
+                52.36759887233674
+              ],
+              [
+                9.742163259244654,
+                52.367760582431956
+              ],
+              [
+                9.741927144831644,
+                52.367701918415236
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b100",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.742705779082888,
+                52.367925342881676
+              ],
+              [
+                9.742847865431292,
+                52.36771221335907
+              ],
+              [
+                9.743013899113441,
+                52.367753465405414
+              ],
+              [
+                9.742871812765037,
+                52.36796659492802
+              ],
+              [
+                9.742705779082888,
+                52.367925342881676
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "b101",
+          "kind": "building"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.743721470057004,
+                52.36643151995523
+              ],
+              [
+                9.743866162772118,
+                52.36621448088256
+              ],
+              [
+                9.744117136225817,
+                52.36627683671547
+              ],
+              [
+                9.743972443510703,
+                52.36649387578814
+              ],
+              [
+                9.743721470057004,
+                52.36643151995523
+              ]
+            ]
+          ]
+        }
+      }
+    ]
+  },
+  "areas": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "Hauptbahnhof",
+          "category": "plaza"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.738864,
+                52.3766
+              ],
+              [
+                9.738786676190234,
+                52.37675556349186
+              ],
+              [
+                9.7386,
+                52.37682
+              ],
+              [
+                9.738413323809766,
+                52.37675556349186
+              ],
+              [
+                9.738336,
+                52.3766
+              ],
+              [
+                9.738413323809766,
+                52.376444436508145
+              ],
+              [
+                9.7386,
+                52.376380000000005
+              ],
+              [
+                9.738786676190234,
+                52.376444436508145
+              ],
+              [
+                9.738864,
+                52.3766
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "Kröpcke",
+          "category": "plaza"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.739464,
+                52.3748
+              ],
+              [
+                9.739386676190234,
+                52.37495556349186
+              ],
+              [
+                9.7392,
+                52.37502
+              ],
+              [
+                9.739013323809766,
+                52.37495556349186
+              ],
+              [
+                9.738936,
+                52.3748
+              ],
+              [
+                9.739013323809766,
+                52.37464443650814
+              ],
+              [
+                9.7392,
+                52.37458
+              ],
+              [
+                9.739386676190234,
+                52.37464443650814
+              ],
+              [
+                9.739464,
+                52.3748
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "Neues Rathaus",
+          "category": "plaza"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.736364,
+                52.3665
+              ],
+              [
+                9.736286676190234,
+                52.36665556349186
+              ],
+              [
+                9.7361,
+                52.36672
+              ],
+              [
+                9.735913323809767,
+                52.36665556349186
+              ],
+              [
+                9.735836,
+                52.3665
+              ],
+              [
+                9.735913323809767,
+                52.36634443650814
+              ],
+              [
+                9.7361,
+                52.36628
+              ],
+              [
+                9.736286676190234,
+                52.36634443650814
+              ],
+              [
+                9.736364,
+                52.3665
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "Maschsee",
+          "category": "park"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.73592,
+                52.3608
+              ],
+              [
+                9.735796984848099,
+                52.36104748737341
+              ],
+              [
+                9.7355,
+                52.361149999999995
+              ],
+              [
+                9.735203015151901,
+                52.36104748737341
+              ],
+              [
+                9.73508,
+                52.3608
+              ],
+              [
+                9.735203015151901,
+                52.36055251262658
+              ],
+              [
+                9.7355,
+                52.36045
+              ],
+              [
+                9.735796984848099,
+                52.36055251262658
+              ],
+              [
+                9.73592,
+                52.3608
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "Eilenriede",
+          "category": "park"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.76052,
+                52.3811
+              ],
+              [
+                9.760396984848098,
+                52.38134748737342
+              ],
+              [
+                9.7601,
+                52.38145
+              ],
+              [
+                9.7598030151519,
+                52.38134748737342
+              ],
+              [
+                9.75968,
+                52.3811
+              ],
+              [
+                9.7598030151519,
+                52.38085251262659
+              ],
+              [
+                9.7601,
+                52.380750000000006
+              ],
+              [
+                9.760396984848098,
+                52.38085251262659
+              ],
+              [
+                9.76052,
+                52.3811
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "Aegidientorplatz",
+          "category": "plaza"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.741363999999999,
+                52.3701
+              ],
+              [
+                9.741286676190233,
+                52.37025556349186
+              ],
+              [
+                9.7411,
+                52.37032
+              ],
+              [
+                9.740913323809766,
+                52.37025556349186
+              ],
+              [
+                9.740836,
+                52.3701
+              ],
+              [
+                9.740913323809766,
+                52.36994443650814
+              ],
+              [
+                9.7411,
+                52.36988
+              ],
+              [
+                9.741286676190233,
+                52.36994443650814
+              ],
+              [
+                9.741363999999999,
+                52.3701
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "Maschsee Ufer",
+          "category": "park"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                9.7335,
+                52.3595
+              ],
+              [
+                9.7375,
+                52.3595
+              ],
+              [
+                9.7375,
+                52.362
+              ],
+              [
+                9.7335,
+                52.362
+              ],
+              [
+                9.7335,
+                52.3595
+              ]
+            ]
+          ]
+        }
+      }
     ]
   }
 }

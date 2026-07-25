@@ -26,9 +26,8 @@ const POI_COLORS: Record<string, number> = {
 };
 
 /**
- * Vektor-Straßen im Web-Mercator-Raum (gleiche Projektion wie MapTiles).
- * Leicht transparent, damit die hochwertigen Basemap-Tiles durchscheinen,
- * Fahrspuren aber klar bleiben.
+ * Vektor-Straßen + Gebäude/Flächen im Web-Mercator-Raum (gleiche Projektion wie MapTiles).
+ * Straßen leicht transparent, damit Basemap-Tiles durchscheinen.
  */
 export class ChunkManager {
   graph = new RoadGraph();
@@ -37,6 +36,20 @@ export class ChunkManager {
   constructor(private scene: Phaser.Scene) {}
 
   renderAll() {
+    // Flächen (Parks/Plätze) unter den Straßen
+    const areaG = this.scene.add.graphics().setDepth(0);
+    for (const area of this.graph.areas) {
+      if (area.points.length < 3) continue;
+      const isPark = area.category === "park";
+      areaG.fillStyle(isPark ? 0x2e7d32 : 0x5d6d7e, isPark ? 0.28 : 0.22);
+      areaG.lineStyle(1, isPark ? 0x66bb6a : 0x90a4ae, 0.5);
+      areaG.beginPath();
+      area.points.forEach((p, i) => (i === 0 ? areaG.moveTo(p.x, p.y) : areaG.lineTo(p.x, p.y)));
+      areaG.closePath();
+      areaG.fillPath();
+      areaG.strokePath();
+    }
+
     const g = this.scene.add.graphics().setDepth(1);
 
     for (const road of this.graph.roads) {
@@ -63,9 +76,21 @@ export class ChunkManager {
       }
     }
 
+    // Gebäude über den Straßen, unter POIs – klare Sperrflächen
+    const bG = this.scene.add.graphics().setDepth(3);
+    for (const b of this.graph.buildings) {
+      if (b.points.length < 3) continue;
+      bG.fillStyle(0x1a2230, 0.72);
+      bG.lineStyle(1, 0x3a4558, 0.9);
+      bG.beginPath();
+      b.points.forEach((p, i) => (i === 0 ? bG.moveTo(p.x, p.y) : bG.lineTo(p.x, p.y)));
+      bG.closePath();
+      bG.fillPath();
+      bG.strokePath();
+    }
+
     for (const poi of this.graph.pois) {
       const color = POI_COLORS[poi.category] ?? 0xcccccc;
-      // Animierter Ring
       const ring = this.scene.add
         .circle(poi.x, poi.y, 10, color, 0.15)
         .setStrokeStyle(2, color, 0.9)

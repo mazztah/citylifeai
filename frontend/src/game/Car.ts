@@ -157,10 +157,10 @@ export class Car {
           moved = true;
         }
         if (!moved) {
-          // Vollblockade → stark abbremsen
-          this.speed *= 0.25;
+          // Vollblockade → abbremsen, aber nicht einfrieren
+          this.speed *= 0.4;
         } else {
-          this.speed *= 0.85;
+          this.speed *= 0.92;
         }
       }
     }

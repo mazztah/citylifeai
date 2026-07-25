@@ -47,10 +47,28 @@ export class WorldScene extends Phaser.Scene {
       this.decor = new WorldDecor(this, this.chunkManager.graph);
       this.decor.spawnAll();
 
-      // Spawn am Hauptbahnhof – auf nächste Straße snappen falls nötig
+      // Spawn am Hauptbahnhof – auf Straße snappen, ggf. naheliegende drivable Position suchen
       const start = lonLatToWorld(9.7410, 52.3769);
-      const snapped = this.drivable.snapToRoad(start.x, start.y);
-      this.car = new Car(this, snapped.x, snapped.y, "player");
+      let spawn = this.drivable.snapToRoad(start.x, start.y);
+      if (!this.drivable.isDrivable(spawn.x, spawn.y)) {
+        let found = false;
+        for (let r = 10; r <= 120 && !found; r += 10) {
+          for (let a = 0; a < 8; a++) {
+            const ang = (a / 8) * Math.PI * 2;
+            const tx = spawn.x + Math.cos(ang) * r;
+            const ty = spawn.y + Math.sin(ang) * r;
+            if (this.drivable.isDrivable(tx, ty)) {
+              spawn = { x: tx, y: ty };
+              found = true;
+              break;
+            }
+          }
+        }
+        if (!found) {
+          console.warn("Kein befahrbarer Spawn – Soft-Fahrphysik");
+        }
+      }
+      this.car = new Car(this, spawn.x, spawn.y, "player");
       this.driveInput = new InputController(this);
 
       this.cameras.main.startFollow(this.car.sprite, true, 0.1, 0.1);

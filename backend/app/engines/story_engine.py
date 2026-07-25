@@ -2,6 +2,7 @@ import json
 from functools import lru_cache
 from pathlib import Path
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from ..models import Player, StoryProgress
@@ -17,20 +18,35 @@ def _load_chapters() -> list[dict]:
 
 
 def get_or_create_progress(player: Player, db: Session) -> StoryProgress:
-    progress = player.story_progress
-    if not progress:
-        chapters = _load_chapters()
-        first_id = chapters[0]["id"]
-        progress = StoryProgress(
-            player_id=player.id,
-            current_chapter_id=first_id,
-            unlocked_chapter_ids=[first_id],
-            flags={},
-        )
-        db.add(progress)
+    """Race-safe: parallele /missions + /story Requests dürfen denselben Spieler anlegen."""
+    progress = (
+        db.query(StoryProgress).filter(StoryProgress.player_id == player.id).first()
+    )
+    if progress:
+        return progress
+
+    chapters = _load_chapters()
+    first_id = chapters[0]["id"]
+    progress = StoryProgress(
+        player_id=player.id,
+        current_chapter_id=first_id,
+        unlocked_chapter_ids=[first_id],
+        flags={},
+    )
+    db.add(progress)
+    try:
         db.commit()
         db.refresh(progress)
-    return progress
+        return progress
+    except IntegrityError:
+        # Anderer Request hat denselben player_id soeben eingefügt
+        db.rollback()
+        progress = (
+            db.query(StoryProgress).filter(StoryProgress.player_id == player.id).first()
+        )
+        if not progress:
+            raise
+        return progress
 
 
 def sync_unlocks(player: Player, db: Session) -> StoryProgress:
@@ -43,7 +59,7 @@ def sync_unlocks(player: Player, db: Session) -> StoryProgress:
     for chapter in chapters:
         if player.xp >= chapter["unlock_xp"] and chapter["id"] not in unlocked:
             unlocked.add(chapter["id"])
-            progress.current_chapter_id = chapter["id"]  # neuestes Kapitel wird "aktuell"
+            progress.current_chapter_id = chapter["id"]
             changed = True
 
     if changed:

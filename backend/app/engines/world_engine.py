@@ -23,6 +23,7 @@ Karten-/Straßendatenbasis identisch ist.
 import random
 from datetime import datetime, timedelta, timezone
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from ..config import settings
@@ -47,11 +48,20 @@ def get_or_create_city_state(player: Player, db: Session, city_id: str = "hannov
     state = db.query(CityState).filter(
         CityState.player_id == player.id, CityState.city_id == city_id
     ).first()
-    if not state:
-        state = CityState(player_id=player.id, city_id=city_id)
-        db.add(state)
+    if state:
+        return state
+    state = CityState(player_id=player.id, city_id=city_id)
+    db.add(state)
+    try:
         db.commit()
         db.refresh(state)
+    except IntegrityError:
+        db.rollback()
+        state = db.query(CityState).filter(
+            CityState.player_id == player.id, CityState.city_id == city_id
+        ).first()
+        if not state:
+            raise
     return state
 
 

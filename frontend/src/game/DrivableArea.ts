@@ -1,32 +1,42 @@
 import type { RoadGraph, RoadSegment, PolyArea } from "./RoadGraph";
 
-/** Halbe Fahrbahnbreite in Weltpixeln (PIXELS_PER_METER ≈ 1.8 → ~8–9 m pro Seite bei primary). */
+/** Halbe Fahrbahnbreite in Weltpixeln – bewusst großzügig (Kartenabweichung + Fahrgefühl). */
 const HALF_WIDTH: Record<string, number> = {
-  primary: 16,
-  secondary: 13,
-  tertiary: 10,
+  primary: 22,
+  secondary: 18,
+  tertiary: 14,
 };
 
 /** Zusätzlicher Rand (Gehweg / leichte Kartenabweichung). */
-const SIDEWALK_MARGIN = 8;
+const SIDEWALK_MARGIN = 14;
 
 /**
- * Befahrbare Fläche: Straßenkorridor + Parks/Plätze, aber keine Gebäude.
- * Gebäude haben Vorrang (blockieren auch wenn sie theoretisch im Straßenkorridor lägen).
+ * Befahrbare Fläche: Straßenkorridor + Parks/Plätze, keine Gebäude.
+ * Wenn kaum Straßen geladen sind (OSM-Fetch fail), wird nur Gebäude-Blockade genutzt
+ * – sonst wäre das Auto komplett fest.
  */
 export class DrivableArea {
   private roads: RoadSegment[];
   private buildings: PolyArea[];
   private areas: PolyArea[];
+  /** true = nur Gebäude blockieren, Straßen-Zwang aus */
+  readonly softMode: boolean;
 
   constructor(graph: RoadGraph) {
     this.roads = graph.roads;
     this.buildings = graph.buildings;
     this.areas = graph.areas;
+    this.softMode = graph.roads.length < 5;
+    if (this.softMode) {
+      console.warn(
+        "[DrivableArea] Wenige Straßen im Graph – Soft-Mode (nur Gebäude blockieren)."
+      );
+    }
   }
 
   isDrivable(x: number, y: number): boolean {
     if (this.isInsideAnyBuilding(x, y)) return false;
+    if (this.softMode) return true;
     if (this.isInsideAnyArea(x, y)) return true;
     const { distance, halfWidth } = this.distanceToNearestRoad(x, y);
     return distance <= halfWidth + SIDEWALK_MARGIN;
@@ -64,8 +74,8 @@ export class DrivableArea {
     return { distance: best, halfWidth: bestHalf };
   }
 
-  /** Nächster Punkt auf dem Straßennetz (für sanftes Einschnappen beim Spawn). */
   snapToRoad(x: number, y: number): { x: number; y: number } {
+    if (!this.roads.length) return { x, y };
     let best = { x, y, d: Infinity };
     for (const road of this.roads) {
       for (let i = 0; i < road.points.length - 1; i++) {

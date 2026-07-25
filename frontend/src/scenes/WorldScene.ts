@@ -7,6 +7,7 @@ import { StoryDialog } from "../game/StoryDialog";
 import { MapTiles } from "../game/MapTiles";
 import { WorldDecor } from "../game/WorldDecor";
 import { DrivableArea } from "../game/DrivableArea";
+import { MinimapRadar } from "../game/MinimapRadar";
 import { api, type Mission, type Player } from "../api/client";
 import { lonLatToWorld, MAP_TILE_ZOOM } from "../config";
 
@@ -18,6 +19,7 @@ export class WorldScene extends Phaser.Scene {
   private mapTiles!: MapTiles;
   private decor!: WorldDecor;
   private drivable!: DrivableArea;
+  private radar!: MinimapRadar;
   private markers: MissionMarker[] = [];
   private storyDialog!: StoryDialog;
 
@@ -46,7 +48,7 @@ export class WorldScene extends Phaser.Scene {
       this.decor.spawnAll();
 
       // Spawn am Hauptbahnhof – auf nächste Straße snappen falls nötig
-      const start = lonLatToWorld(9.7386, 52.3766);
+      const start = lonLatToWorld(9.7410, 52.3769);
       const snapped = this.drivable.snapToRoad(start.x, start.y);
       this.car = new Car(this, snapped.x, snapped.y, "player");
       this.driveInput = new InputController(this);
@@ -79,6 +81,8 @@ export class WorldScene extends Phaser.Scene {
         "voyager"
       );
       this.mapTiles.startLoading();
+
+      this.radar = new MinimapRadar(this, this.chunkManager.graph);
     } catch (err) {
       console.error("WorldScene create failed:", err);
       const { width, height } = this.scale;
@@ -100,6 +104,7 @@ export class WorldScene extends Phaser.Scene {
       this.decor?.update(dt);
 
       const pos = this.car.position;
+      this.radar?.update(pos.x, pos.y, this.car.sprite.rotation);
 
       for (const marker of [...this.markers]) {
         if (marker.isReachable(pos.x, pos.y)) this.completeMission(marker);
@@ -146,6 +151,16 @@ export class WorldScene extends Phaser.Scene {
       this.markers.push(marker);
     }
     this.events.emit("missions-updated", missions);
+    if (this.radar) {
+      this.radar.setMissions(
+        missions
+          .filter((m) => m.target_lat != null && m.target_lon != null)
+          .map((m) => {
+            const w = lonLatToWorld(m.target_lon!, m.target_lat!);
+            return { x: w.x, y: w.y, story: m.category === "story" };
+          })
+      );
+    }
   }
 
   private completeMission(marker: MissionMarker) {

@@ -20,14 +20,14 @@ from . import story_engine
 
 # Reale Koordinaten zentraler Hannover-Orte (Ziel-Anker für Missionen)
 LANDMARKS = {
-    "Hauptbahnhof": (52.3766, 9.7386),
-    "Kroepcke": (52.3748, 9.7392),
-    "Neues Rathaus": (52.3665, 9.7361),
+    "Hauptbahnhof": (52.3769, 9.7410),
+    "Kroepcke": (52.3745, 9.7389),
+    "Neues Rathaus": (52.3673, 9.7370),
     "Maschsee": (52.3608, 9.7355),
     "Eilenriede": (52.3811, 9.7601),
     "Lister Meile": (52.3838, 9.7477),
-    "Steintor": (52.3737, 9.7477),
-    "Aegidientorplatz": (52.3701, 9.7411),
+    "Steintor": (52.3755, 9.7320),
+    "Aegidientorplatz": (52.3695, 9.7425),
 }
 
 STORY_MISSION_TEMPLATES = {

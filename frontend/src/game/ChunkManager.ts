@@ -58,18 +58,18 @@ export class ChunkManager {
       const outerW = kind === "primary" ? 18 : kind === "secondary" ? 14 : 10;
       const innerW = kind === "primary" ? 14 : kind === "secondary" ? 10 : 7;
 
-      g.lineStyle(outerW, ROAD_EDGE[kind], 0.55);
+      g.lineStyle(outerW, ROAD_EDGE[kind], 0.42);
       g.beginPath();
       road.points.forEach((p, i) => (i === 0 ? g.moveTo(p.x, p.y) : g.lineTo(p.x, p.y)));
       g.strokePath();
 
-      g.lineStyle(innerW, ROAD_ASPHALT[kind], 0.5);
+      g.lineStyle(innerW, ROAD_ASPHALT[kind], 0.38);
       g.beginPath();
       road.points.forEach((p, i) => (i === 0 ? g.moveTo(p.x, p.y) : g.lineTo(p.x, p.y)));
       g.strokePath();
 
       if (kind === "primary") {
-        g.lineStyle(1.2, 0xf0c419, 0.55);
+        g.lineStyle(1.2, 0xf0c419, 0.4);
         g.beginPath();
         road.points.forEach((p, i) => (i === 0 ? g.moveTo(p.x, p.y) : g.lineTo(p.x, p.y)));
         g.strokePath();
@@ -80,7 +80,7 @@ export class ChunkManager {
     const bG = this.scene.add.graphics().setDepth(3);
     for (const b of this.graph.buildings) {
       if (b.points.length < 3) continue;
-      bG.fillStyle(0x1a2230, 0.72);
+      bG.fillStyle(0x1a2230, 0.55);
       bG.lineStyle(1, 0x3a4558, 0.9);
       bG.beginPath();
       b.points.forEach((p, i) => (i === 0 ? bG.moveTo(p.x, p.y) : bG.lineTo(p.x, p.y)));

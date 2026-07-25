@@ -31,81 +31,95 @@ export class WorldScene extends Phaser.Scene {
     this.player = data.player;
   }
 
-  preload() {
-    this.mapTiles = new MapTiles(
-      this,
-      MAP_TILE_ZOOM,
-      { south: 52.355, west: 9.722, north: 52.390, east: 9.768 },
-      "voyager"
-    );
-    this.mapTiles.queueLoad();
-    this.load.on("loaderror", (file: { key?: string }) => {
-      console.warn("Kachel-Fehler:", file?.key);
-    });
-  }
+  // Kein preload mit externen URLs – sonst hängt Phaser vor create()
+  preload() {}
 
   create() {
-    this.mapTiles.place();
+    try {
+      // 1) Spiel sofort spielbar: Straßen + Auto + UI
+      this.chunkManager = new ChunkManager(this);
+      this.chunkManager.renderAll();
 
-    this.chunkManager = new ChunkManager(this);
-    this.chunkManager.renderAll();
+      this.decor = new WorldDecor(this, this.chunkManager.graph);
+      this.decor.spawnAll();
 
-    this.decor = new WorldDecor(this, this.chunkManager.graph);
-    this.decor.spawnAll();
+      const start = lonLatToWorld(9.7386, 52.3766);
+      this.car = new Car(this, start.x, start.y, "player");
+      this.driveInput = new InputController(this);
 
-    const start = lonLatToWorld(9.7386, 52.3766);
-    this.car = new Car(this, start.x, start.y, "player");
-    this.driveInput = new InputController(this);
+      this.cameras.main.startFollow(this.car.sprite, true, 0.1, 0.1);
+      this.cameras.main.setZoom(1.2);
+      this.cameras.main.setBackgroundColor("#1a2332");
+      this.cameras.main.setRoundPixels(true);
 
-    this.cameras.main.startFollow(this.car.sprite, true, 0.1, 0.1);
-    this.cameras.main.setZoom(1.25);
-    this.cameras.main.setBackgroundColor("#1a2332");
-    this.cameras.main.setRoundPixels(true);
+      const nw = lonLatToWorld(9.728, 52.385);
+      const se = lonLatToWorld(9.760, 52.358);
+      this.cameras.main.setBounds(
+        Math.min(nw.x, se.x) - 150,
+        Math.min(nw.y, se.y) - 150,
+        Math.abs(se.x - nw.x) + 300,
+        Math.abs(se.y - nw.y) + 300
+      );
 
-    const nw = lonLatToWorld(9.722, 52.390);
-    const se = lonLatToWorld(9.768, 52.355);
-    this.cameras.main.setBounds(
-      Math.min(nw.x, se.x) - 150,
-      Math.min(nw.y, se.y) - 150,
-      Math.abs(se.x - nw.x) + 300,
-      Math.abs(se.y - nw.y) + 300
-    );
+      this.storyDialog = new StoryDialog(() => {});
+      this.scene.launch("UIScene", { player: this.player });
+      this.events.emit("player-updated", this.player);
 
-    this.storyDialog = new StoryDialog(() => {});
-    this.scene.launch("UIScene", { player: this.player });
-    this.events.emit("player-updated", this.player);
+      this.refreshMissions();
+      this.checkStory(true);
 
-    this.refreshMissions();
-    this.checkStory(true);
+      // 2) Kacheln asynchron im Hintergrund (blockieren nicht)
+      this.mapTiles = new MapTiles(
+        this,
+        Math.min(MAP_TILE_ZOOM, 15),
+        { south: 52.358, west: 9.728, north: 52.385, east: 9.760 },
+        "voyager"
+      );
+      this.mapTiles.startLoading();
+    } catch (err) {
+      console.error("WorldScene create failed:", err);
+      const { width, height } = this.scale;
+      this.add
+        .text(width / 2, height / 2, "Spielstart-Fehler – Konsole prüfen", {
+          fontSize: "16px",
+          color: "#ff6b6b",
+        })
+        .setOrigin(0.5);
+    }
   }
 
   update(_time: number, deltaMs: number) {
+    if (!this.car || !this.driveInput) return;
     const dt = deltaMs / 1000;
-    this.car.update(dt, this.driveInput.read());
-    this.events.emit("speed-updated", this.car.currentSpeedKmh);
-    this.decor.update(dt);
+    try {
+      this.car.update(dt, this.driveInput.read());
+      this.events.emit("speed-updated", this.car.currentSpeedKmh);
+      this.decor?.update(dt);
 
-    const pos = this.car.position;
-    const nearest = this.chunkManager.graph.nearestRoadPoint(pos.x, pos.y);
-    if (nearest.distance > 35 && nearest.distance < 180) {
-      const pull = 0.02;
-      this.car.sprite.x += (nearest.x - pos.x) * pull;
-      this.car.sprite.y += (nearest.y - pos.y) * pull;
-    }
+      const pos = this.car.position;
+      const nearest = this.chunkManager.graph.nearestRoadPoint(pos.x, pos.y);
+      if (nearest.distance > 35 && nearest.distance < 180) {
+        const pull = 0.02;
+        this.car.sprite.x += (nearest.x - pos.x) * pull;
+        this.car.sprite.y += (nearest.y - pos.y) * pull;
+      }
 
-    for (const marker of [...this.markers]) {
-      if (marker.isReachable(pos.x, pos.y)) this.completeMission(marker);
-    }
+      for (const marker of [...this.markers]) {
+        if (marker.isReachable(pos.x, pos.y)) this.completeMission(marker);
+      }
 
-    this.missionRefreshTimer += dt;
-    if (this.missionRefreshTimer > 15) {
-      this.missionRefreshTimer = 0;
-      this.refreshMissions();
-    }
-    this.storyCheckTimer += dt;
-    if (this.storyCheckTimer > 5) {
-      this.storyCheckTimer = 0;
-      this.checkStory(false);
+      this.missionRefreshTimer += dt;
+      if (this.missionRefreshTimer > 15) {
+        this.missionRefreshTimer = 0;
+        this.refreshMissions();
+      }
+      this.storyCheckTimer += dt;
+      if (this.storyCheckTimer > 5) {
+        this.storyCheckTimer = 0;
+        this.checkStory(false);
+      }
+    } catch (err) {
+      console.error("WorldScene update:", err);
     }
   }
 

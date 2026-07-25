@@ -18,7 +18,7 @@ export const ORIGIN_SHIFT = Math.PI * EARTH_RADIUS; // ≈ 20037508.34
 export const PIXELS_PER_METER = 1.8;
 
 /** Standard-Zoom für Rasterkacheln (höher = schärfer, mehr Downloads) */
-export const MAP_TILE_ZOOM = 16;
+export const MAP_TILE_ZOOM = 15;
 
 export function lonLatToMercator(lon: number, lat: number): { x: number; y: number } {
   const x = (lon * ORIGIN_SHIFT) / 180;

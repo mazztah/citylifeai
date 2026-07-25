@@ -22,6 +22,7 @@ export class WorldDecor {
   ) {}
 
   spawnAll() {
+    if (!this.graph.roads.length) return;
     this.spawnTreesNearParks();
     this.spawnStreetLights();
     this.spawnBenchesAndBins();

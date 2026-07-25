@@ -1,32 +1,30 @@
 """
 Echter OpenStreetMap-Importer für CityLife AI.
 
-Zielschema (identisch zu frontend/src/data/hannover_center.geojson):
+Zielschema (frontend/src/data/hannover_center.geojson):
 {
-  "meta": { "note": "...", "origin_lat": ..., "origin_lon": ..., "source": "osm" },
-  "roads": { "type": "FeatureCollection", "features": [ LineString + {name, kind} ] },
-  "pois":  { "type": "FeatureCollection", "features": [ Point + {name, category} ] }
+  "meta": { "note", "origin_lat", "origin_lon", "source", "road_count", ... },
+  "roads":     { "type": "FeatureCollection", "features": [ LineString + {name, kind} ] },
+  "pois":      { "type": "FeatureCollection", "features": [ Point + {name, category} ] },
+  "buildings": { "type": "FeatureCollection", "features": [ Polygon + {id, kind} ] },
+  "areas":     { "type": "FeatureCollection", "features": [ Polygon + {name, category} ] }
 }
 
-Nutzung (mit Netzwerk):
+Nutzung:
 
-  # 1) Overpass-JSON für Hannover-Zentrum holen
-  python -m backend.app.tools.osm_import fetch \\
+  python -m app.tools.osm_import fetch \\
       --south 52.358 --west 9.725 --north 52.390 --east 9.765 \\
       --out /tmp/hannover_overpass.json
 
-  # 2) In Spiel-GeoJSON konvertieren
-  python -m backend.app.tools.osm_import convert \\
+  python -m app.tools.osm_import convert \\
       --input /tmp/hannover_overpass.json \\
-      --out frontend/src/data/hannover_center.geojson
+      --out ../frontend/src/data/hannover_center.geojson
 
-  # Optional: Geofabrik-PBF-Pfad (wenn osmium installiert)
-  python -m backend.app.tools.osm_import from-pbf \\
-      --pbf niedersachsen-latest.osm.pbf \\
-      --bbox 9.725,52.358,9.765,52.390 \\
-      --out frontend/src/data/hannover_center.geojson
+Oder alles in einem Schritt:
 
-Die Frontend-Klasse RoadGraph lädt genau dieses Schema – kein weiterer Code-Change nötig.
+  python -m app.tools.osm_import import-bbox \\
+      --south 52.358 --west 9.725 --north 52.390 --east 9.765 \\
+      --out ../frontend/src/data/hannover_center.geojson
 """
 from __future__ import annotations
 
@@ -92,26 +90,59 @@ DRIVABLE = {
     "living_street", "service",
 }
 
+# Freiflächen, die befahrbar sein sollen (Parks, Plätze, Parkplätze)
+AREA_TAGS = {
+    ("leisure", "park"): "park",
+    ("leisure", "garden"): "park",
+    ("landuse", "recreation_ground"): "park",
+    ("landuse", "grass"): "park",
+    ("leisure", "pitch"): "park",
+    ("place", "square"): "plaza",
+    ("highway", "pedestrian"): "plaza",  # Fußgängerzone als Fläche (wenn Polygon)
+    ("amenity", "parking"): "parking",
+    ("landuse", "plaza"): "plaza",
+}
 
-def overpass_query_roads_and_pois(
-    south: float, west: float, north: float, east: float, timeout: int = 90
+
+def overpass_query(
+    south: float, west: float, north: float, east: float, timeout: int = 120
 ) -> str:
+    """Straßen + POIs + Gebäude + Freiflächen für eine Bounding-Box."""
     return f"""
 [out:json][timeout:{timeout}];
 (
-  way["highway"~"^(motorway|trunk|primary|secondary|tertiary|residential|unclassified|living_street|service)$"]
+  // befahrbare Straßen
+  way["highway"~"^(motorway|trunk|primary|secondary|tertiary|residential|unclassified|living_street|service|pedestrian)$"]
     ({south},{west},{north},{east});
+  // Gebäude
+  way["building"]({south},{west},{north},{east});
+  // Parks / Plätze / Parkplätze als Flächen
+  way["leisure"~"^(park|garden|pitch)$"]({south},{west},{north},{east});
+  way["landuse"~"^(recreation_ground|grass)$"]({south},{west},{north},{east});
+  way["place"="square"]({south},{west},{north},{east});
+  way["amenity"="parking"]({south},{west},{north},{east});
+  way["highway"="pedestrian"]["area"="yes"]({south},{west},{north},{east});
 );
 out geom;
-node["amenity"~"^(cafe|restaurant|fuel|hospital|clinic|pharmacy|bank|parking|school|university|theatre|cinema|bar|pub)$"]
-  ({south},{west},{north},{east});
-node["shop"~"^(supermarket|convenience|mall|clothes)$"]
-  ({south},{west},{north},{east});
-node["railway"="station"]({south},{west},{north},{east});
-node["tourism"~"^(attraction|museum|viewpoint)$"]({south},{west},{north},{east});
-node["leisure"="park"]({south},{west},{north},{east});
+(
+  node["amenity"~"^(cafe|restaurant|fuel|hospital|clinic|pharmacy|bank|parking|school|university|theatre|cinema|bar|pub)$"]
+    ({south},{west},{north},{east});
+  node["shop"~"^(supermarket|convenience|mall|clothes)$"]
+    ({south},{west},{north},{east});
+  node["railway"="station"]({south},{west},{north},{east});
+  node["tourism"~"^(attraction|museum|viewpoint)$"]
+    ({south},{west},{north},{east});
+  node["leisure"="park"]({south},{west},{north},{east});
+);
 out body;
 """
+
+
+ENDPOINTS = [
+    "https://overpass-api.de/api/interpreter",
+    "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+    "https://overpass.kumi.systems/api/interpreter",
+]
 
 
 def fetch_overpass(
@@ -119,17 +150,33 @@ def fetch_overpass(
     west: float,
     north: float,
     east: float,
-    endpoint: str = "https://overpass-api.de/api/interpreter",
-    timeout: int = 120,
+    endpoint: str | None = None,
+    timeout: int = 180,
 ) -> dict[str, Any]:
-    query = overpass_query_roads_and_pois(south, west, north, east, timeout=timeout - 10)
-    url = f"{endpoint}?data={urllib.parse.quote(query)}"
-    req = urllib.request.Request(
-        url,
-        headers={"User-Agent": "CityLifeAI/0.1 (educational)"},
-    )
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
-        return json.loads(resp.read().decode("utf-8"))
+    query = overpass_query(south, west, north, east, timeout=max(30, timeout - 20))
+    endpoints = [endpoint] if endpoint else ENDPOINTS
+    last_err: Exception | None = None
+    for ep in endpoints:
+        if not ep:
+            continue
+        url = f"{ep}?data={urllib.parse.quote(query)}"
+        req = urllib.request.Request(
+            url,
+            headers={"User-Agent": "CityLifeAI/0.2 (educational; contact: local-dev)"},
+        )
+        try:
+            print(f"  Overpass: {ep} …", file=sys.stderr)
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+            n = len(data.get("elements", []))
+            print(f"  → {n} Elemente", file=sys.stderr)
+            if n == 0:
+                raise RuntimeError("leere Antwort")
+            return data
+        except Exception as exc:  # noqa: BLE001
+            last_err = exc
+            print(f"  fehlgeschlagen: {exc}", file=sys.stderr)
+    raise RuntimeError(f"Alle Overpass-Endpoints fehlgeschlagen: {last_err}")
 
 
 def _kind_from_tags(tags: dict) -> str | None:
@@ -154,36 +201,118 @@ def _category_from_tags(tags: dict) -> str | None:
     return None
 
 
+def _area_category(tags: dict) -> str | None:
+    for (k, v), cat in AREA_TAGS.items():
+        if tags.get(k) == v:
+            return cat
+    if tags.get("highway") == "pedestrian" and tags.get("area") == "yes":
+        return "plaza"
+    return None
+
+
+def _ring_from_geometry(geom: list[dict]) -> list[list[float]] | None:
+    if not geom or len(geom) < 3:
+        return None
+    coords = [[p["lon"], p["lat"]] for p in geom]
+    # Ring schließen
+    if coords[0] != coords[-1]:
+        coords.append(coords[0])
+    if len(coords) < 4:
+        return None
+    return coords
+
+
 def convert_overpass_to_game_geojson(
     overpass: dict[str, Any],
     origin_lat: float = 52.3759,
-    origin_lon: float = 9.7320,
+    origin_lon: float = 9.7392,
     min_road_points: int = 2,
+    max_buildings: int = 2500,
 ) -> dict[str, Any]:
     roads_features: list[dict] = []
     pois_features: list[dict] = []
+    buildings_features: list[dict] = []
+    areas_features: list[dict] = []
     seen_poi: set[str] = set()
+    building_count = 0
 
     for el in overpass.get("elements", []):
         tags = el.get("tags") or {}
         etype = el.get("type")
 
         if etype == "way" and "geometry" in el:
-            kind = _kind_from_tags(tags)
-            if kind is None:
-                continue
             geom = el["geometry"]
-            if len(geom) < min_road_points:
+
+            # 1) Straße?
+            kind = _kind_from_tags(tags)
+            if kind is not None and "building" not in tags:
+                if len(geom) >= min_road_points:
+                    coords = [[p["lon"], p["lat"]] for p in geom]
+                    name = tags.get("name") or tags.get("ref") or f"way/{el.get('id', '?')}"
+                    roads_features.append(
+                        {
+                            "type": "Feature",
+                            "properties": {
+                                "name": name,
+                                "kind": kind,
+                                "osm_id": el.get("id"),
+                            },
+                            "geometry": {"type": "LineString", "coordinates": coords},
+                        }
+                    )
+                # Fußgängerzone als Fläche zusätzlich, wenn area=yes
+                if tags.get("highway") == "pedestrian" and tags.get("area") == "yes":
+                    ring = _ring_from_geometry(geom)
+                    if ring:
+                        areas_features.append(
+                            {
+                                "type": "Feature",
+                                "properties": {
+                                    "name": tags.get("name") or "Fußgängerzone",
+                                    "category": "plaza",
+                                    "osm_id": el.get("id"),
+                                },
+                                "geometry": {"type": "Polygon", "coordinates": [ring]},
+                            }
+                        )
                 continue
-            coords = [[p["lon"], p["lat"]] for p in geom]
-            name = tags.get("name") or tags.get("ref") or f"way/{el.get('id', '?')}"
-            roads_features.append(
-                {
-                    "type": "Feature",
-                    "properties": {"name": name, "kind": kind, "osm_id": el.get("id")},
-                    "geometry": {"type": "LineString", "coordinates": coords},
-                }
-            )
+
+            # 2) Gebäude?
+            if "building" in tags and building_count < max_buildings:
+                ring = _ring_from_geometry(geom)
+                if ring:
+                    buildings_features.append(
+                        {
+                            "type": "Feature",
+                            "properties": {
+                                "id": f"osm_{el.get('id')}",
+                                "kind": "building",
+                                "name": tags.get("name") or tags.get("building"),
+                                "osm_id": el.get("id"),
+                            },
+                            "geometry": {"type": "Polygon", "coordinates": [ring]},
+                        }
+                    )
+                    building_count += 1
+                continue
+
+            # 3) Freifläche?
+            acat = _area_category(tags)
+            if acat:
+                ring = _ring_from_geometry(geom)
+                if ring:
+                    areas_features.append(
+                        {
+                            "type": "Feature",
+                            "properties": {
+                                "name": tags.get("name") or acat,
+                                "category": acat,
+                                "osm_id": el.get("id"),
+                            },
+                            "geometry": {"type": "Polygon", "coordinates": [ring]},
+                        }
+                    )
+                continue
 
         elif etype == "node":
             cat = _category_from_tags(tags)
@@ -197,7 +326,11 @@ def convert_overpass_to_game_geojson(
             pois_features.append(
                 {
                     "type": "Feature",
-                    "properties": {"name": name, "category": cat, "osm_id": el.get("id")},
+                    "properties": {
+                        "name": name,
+                        "category": cat,
+                        "osm_id": el.get("id"),
+                    },
                     "geometry": {
                         "type": "Point",
                         "coordinates": [el["lon"], el["lat"]],
@@ -213,10 +346,47 @@ def convert_overpass_to_game_geojson(
             "source": "openstreetmap",
             "road_count": len(roads_features),
             "poi_count": len(pois_features),
+            "building_count": len(buildings_features),
+            "area_count": len(areas_features),
         },
         "roads": {"type": "FeatureCollection", "features": roads_features},
         "pois": {"type": "FeatureCollection", "features": pois_features},
+        "buildings": {"type": "FeatureCollection", "features": buildings_features},
+        "areas": {"type": "FeatureCollection", "features": areas_features},
     }
+
+
+def export_chunk_geojson(
+    overpass_or_geojson_path: Path,
+    out_path: Path,
+    origin_lat: float = 52.3759,
+    origin_lon: float = 9.7392,
+) -> dict[str, Any]:
+    data = json.loads(overpass_or_geojson_path.read_text(encoding="utf-8"))
+    if "roads" in data and "pois" in data and data.get("meta", {}).get("source") in (
+        "openstreetmap",
+        "openstreetmap-aligned",
+    ):
+        # bereits Spiel-GeoJSON – ggf. fehlende buildings/areas ergänzen
+        data.setdefault("buildings", {"type": "FeatureCollection", "features": []})
+        data.setdefault("areas", {"type": "FeatureCollection", "features": []})
+        out_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(f"Kopiert (bereits Spiel-Format): {out_path}", file=sys.stderr)
+        return data
+
+    game = convert_overpass_to_game_geojson(
+        data, origin_lat=origin_lat, origin_lon=origin_lon
+    )
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(json.dumps(game, ensure_ascii=False, indent=2), encoding="utf-8")
+    m = game["meta"]
+    print(
+        f"Geschrieben: {out_path}\n"
+        f"  Straßen: {m['road_count']}  POIs: {m['poi_count']}  "
+        f"Gebäude: {m['building_count']}  Flächen: {m['area_count']}",
+        file=sys.stderr,
+    )
+    return game
 
 
 def extract_city(pbf_path: Path, bbox: tuple[float, float, float, float], out_path: Path) -> None:
@@ -237,42 +407,6 @@ def extract_city(pbf_path: Path, bbox: tuple[float, float, float, float], out_pa
     subprocess.check_call(cmd)
 
 
-def import_to_postgis(osm_pbf_path: Path, dsn: str) -> None:
-    import shutil
-    import subprocess
-
-    if not shutil.which("ogr2ogr"):
-        raise RuntimeError("ogr2ogr (GDAL) nicht gefunden.")
-    for layer, table in (("lines", "osm_roads"), ("multipolygons", "osm_buildings"), ("points", "osm_pois")):
-        cmd = [
-            "ogr2ogr", "-f", "PostgreSQL", f"PG:{dsn}",
-            str(osm_pbf_path), layer, "-nln", table, "-overwrite",
-            "-lco", "GEOMETRY_NAME=geom",
-        ]
-        try:
-            subprocess.check_call(cmd)
-        except subprocess.CalledProcessError as exc:
-            print(f"Warnung: Layer {layer}: {exc}", file=sys.stderr)
-
-
-def export_chunk_geojson(
-    overpass_or_geojson_path: Path,
-    out_path: Path,
-    origin_lat: float = 52.3759,
-    origin_lon: float = 9.7320,
-) -> None:
-    data = json.loads(overpass_or_geojson_path.read_text(encoding="utf-8"))
-    if "roads" in data and "pois" in data:
-        out_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
-        return
-    game = convert_overpass_to_game_geojson(data, origin_lat=origin_lat, origin_lon=origin_lon)
-    out_path.write_text(json.dumps(game, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(
-        f"Geschrieben: {out_path} "
-        f"({game['meta']['road_count']} Straßen, {game['meta']['poi_count']} POIs)"
-    )
-
-
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="CityLife AI OSM Import")
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -283,18 +417,28 @@ def main(argv: list[str] | None = None) -> int:
     p_fetch.add_argument("--north", type=float, default=52.390)
     p_fetch.add_argument("--east", type=float, default=9.765)
     p_fetch.add_argument("--out", type=Path, required=True)
-    p_fetch.add_argument(
-        "--endpoint",
-        default="https://overpass-api.de/api/interpreter",
-    )
+    p_fetch.add_argument("--endpoint", default=None)
+    p_fetch.add_argument("--timeout", type=int, default=180)
 
     p_conv = sub.add_parser("convert", help="Overpass-JSON → Spiel-GeoJSON")
     p_conv.add_argument("--input", type=Path, required=True)
     p_conv.add_argument("--out", type=Path, required=True)
     p_conv.add_argument("--origin-lat", type=float, default=52.3759)
-    p_conv.add_argument("--origin-lon", type=float, default=9.7320)
+    p_conv.add_argument("--origin-lon", type=float, default=9.7392)
 
-    p_pbf = sub.add_parser("from-pbf", help="osmium extract")
+    p_all = sub.add_parser("import-bbox", help="Fetch + Convert in einem Schritt")
+    p_all.add_argument("--south", type=float, default=52.358)
+    p_all.add_argument("--west", type=float, default=9.725)
+    p_all.add_argument("--north", type=float, default=52.390)
+    p_all.add_argument("--east", type=float, default=9.765)
+    p_all.add_argument("--out", type=Path, required=True)
+    p_all.add_argument("--endpoint", default=None)
+    p_all.add_argument("--timeout", type=int, default=180)
+    p_all.add_argument("--origin-lat", type=float, default=52.3759)
+    p_all.add_argument("--origin-lon", type=float, default=9.7392)
+    p_all.add_argument("--cache", type=Path, default=None, help="Overpass-JSON zwischenspeichern")
+
+    p_pbf = sub.add_parser("from-pbf", help="osmium extract (nur Ausschnitt, kein Spiel-GeoJSON)")
     p_pbf.add_argument("--pbf", type=Path, required=True)
     p_pbf.add_argument("--bbox", type=str, required=True, help="west,south,east,north")
     p_pbf.add_argument("--out", type=Path, required=True)
@@ -302,23 +446,48 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.cmd == "fetch":
-        print(f"Lade Overpass-Daten ({args.south},{args.west},{args.north},{args.east}) …")
-        try:
-            data = fetch_overpass(
-                args.south, args.west, args.north, args.east, endpoint=args.endpoint
-            )
-        except Exception as exc:
-            print(f"Primärer Endpoint fehlgeschlagen ({exc}), versuche Mirror …", file=sys.stderr)
-            data = fetch_overpass(
-                args.south, args.west, args.north, args.east,
-                endpoint="https://maps.mail.ru/osm/tools/overpass/api/interpreter",
-            )
+        print(
+            f"Lade Overpass ({args.south},{args.west} → {args.north},{args.east}) …",
+            file=sys.stderr,
+        )
+        data = fetch_overpass(
+            args.south, args.west, args.north, args.east,
+            endpoint=args.endpoint, timeout=args.timeout,
+        )
+        args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
-        print(f"Gespeichert: {args.out} ({len(data.get('elements', []))} Elemente)")
+        print(f"Gespeichert: {args.out} ({len(data.get('elements', []))} Elemente)", file=sys.stderr)
         return 0
 
     if args.cmd == "convert":
         export_chunk_geojson(args.input, args.out, args.origin_lat, args.origin_lon)
+        return 0
+
+    if args.cmd == "import-bbox":
+        print(
+            f"Import bbox ({args.south},{args.west} → {args.north},{args.east}) …",
+            file=sys.stderr,
+        )
+        data = fetch_overpass(
+            args.south, args.west, args.north, args.east,
+            endpoint=args.endpoint, timeout=args.timeout,
+        )
+        if args.cache:
+            args.cache.parent.mkdir(parents=True, exist_ok=True)
+            args.cache.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+            print(f"Cache: {args.cache}", file=sys.stderr)
+        game = convert_overpass_to_game_geojson(
+            data, origin_lat=args.origin_lat, origin_lon=args.origin_lon
+        )
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        args.out.write_text(json.dumps(game, ensure_ascii=False, indent=2), encoding="utf-8")
+        m = game["meta"]
+        print(
+            f"Fertig: {args.out}\n"
+            f"  Straßen: {m['road_count']}  POIs: {m['poi_count']}  "
+            f"Gebäude: {m['building_count']}  Flächen: {m['area_count']}",
+            file=sys.stderr,
+        )
         return 0
 
     if args.cmd == "from-pbf":
@@ -327,9 +496,8 @@ def main(argv: list[str] | None = None) -> int:
             print("bbox muss west,south,east,north sein", file=sys.stderr)
             return 1
         west, south, east, north = parts
-        extracted = args.out.with_suffix(".osm.pbf")
-        extract_city(args.pbf, (west, south, east, north), extracted)
-        print(f"Ausschnitt: {extracted}")
+        extract_city(args.pbf, (west, south, east, north), args.out)
+        print(f"Ausschnitt: {args.out}", file=sys.stderr)
         return 0
 
     return 1

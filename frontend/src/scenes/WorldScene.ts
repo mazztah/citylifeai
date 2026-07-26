@@ -8,6 +8,8 @@ import { MapTiles } from "../game/MapTiles";
 import { WorldDecor, type ParkedVehicle } from "../game/WorldDecor";
 import { DrivableArea } from "../game/DrivableArea";
 import { MinimapRadar } from "../game/MinimapRadar";
+import { SpatialHash } from "../game/SpatialHash";
+import { SoundSystem } from "../game/SoundSystem";
 import { CameraZoomController } from "../game/CameraZoomController";
 import { api, type Mission, type Player } from "../api/client";
 import {
@@ -50,10 +52,14 @@ export class WorldScene extends Phaser.Scene {
   /** Werkstatt zum Reparieren beschädigter (nicht totalschaden) Fahrzeuge */
   private workshopPos = lonLatToWorld(9.735, 52.3705);
   private workshopMarker!: Phaser.GameObjects.Container;
+  private workshopMarkers: Phaser.GameObjects.Container[] = [];
 
   /** Fahndung: Distanz-Timer bis die Polizei die Verfolgung aufgibt */
   private policeEscapeTimer = 0;
   private lastWanted = false;
+  private collisionIndex = new SpatialHash<{ kind: "traffic" | "parked" | "ped"; obj: any }>(96);
+  private sounds!: SoundSystem;
+  private workshops: { x: number; y: number }[] = [];
 
   /** Fallback, falls nie ein geparktes Fahrzeug in der Nähe ist */
   private strandedWalkDistance = 0;
@@ -115,7 +121,17 @@ export class WorldScene extends Phaser.Scene {
 
       // Werkstatt an eine befahrbare Stelle snappen, damit man sie auch erreichen kann.
       this.workshopPos = this.drivable.snapToRoad(this.workshopPos.x, this.workshopPos.y);
+      const ws2 = lonLatToWorld(9.748, 52.367);
+      const ws3 = lonLatToWorld(9.732, 52.38);
+      this.workshops = [
+        this.workshopPos,
+        this.drivable.snapToRoad(ws2.x, ws2.y),
+        this.drivable.snapToRoad(ws3.x, ws3.y),
+      ];
       this.workshopMarker = this.buildWorkshopMarker(this.workshopPos.x, this.workshopPos.y);
+      this.workshopMarkers = [this.workshopMarker, ...this.workshops.slice(1).map((w) => this.buildWorkshopMarker(w.x, w.y).setVisible(false))];
+      this.sounds = new SoundSystem(this);
+      this.sounds.startBeds();
 
       this.storyDialog = new StoryDialog(() => {});
       this.scene.launch("UIScene", { player: this.player });
@@ -210,6 +226,7 @@ export class WorldScene extends Phaser.Scene {
     this.cameras.main.stopFollow();
     this.cameras.main.startFollow(this.car.sprite, true, 0.12, 0.12);
     this.zoomCtrl.jumpTo(ZOOM_DRIVING);
+    this.sounds?.play("door");
     this.showToast("Eingestiegen");
     this.events.emit("mode-changed", "drive");
     this.events.emit("damage-updated", this.car.collisionCount);
@@ -256,12 +273,12 @@ export class WorldScene extends Phaser.Scene {
       this.showToast("Kein Schaden vorhanden");
       return;
     }
-    const d = Phaser.Math.Distance.Between(
+    const d = Math.min(...this.workshops.map((w) => Phaser.Math.Distance.Between(
       this.car.position.x,
       this.car.position.y,
-      this.workshopPos.x,
-      this.workshopPos.y
-    );
+      w.x,
+      w.y
+    )));
     if (d > 55) {
       this.showToast("🔧 Zur Werkstatt fahren, dann R drücken");
       return;
@@ -273,6 +290,9 @@ export class WorldScene extends Phaser.Scene {
     }
     this.player = { ...this.player, cash: this.player.cash - cost };
     this.car.repair();
+    this.car.repaint();
+    this.decor.clearPolicePursuit();
+    this.sounds?.play("repair", 1, 0);
     this.events.emit("player-updated", this.player);
     this.events.emit("damage-updated", 0);
     this.showToast(`🔧 Repariert für ${cost}💰`);
@@ -313,38 +333,43 @@ export class WorldScene extends Phaser.Scene {
     if (this.collisionCooldown > 0) return;
 
     const pos = this.car.position;
-
-    // 1) Kollision mit fahrendem Verkehr (inkl. Polizei -> Fahndung)
-    for (const other of this.decor.getTrafficCars()) {
-      const op = other.position;
-      const dist = Math.hypot(pos.x - op.x, pos.y - op.y);
-      if (dist < this.car.radius + other.radius) {
-        this.registerPlayerCollision(pos, op);
-        if (other.vehicleClass === "police" && !this.decor.hasActivePursuit()) {
+    this.rebuildCollisionIndex();
+    for (const hit of this.collisionIndex.query(pos.x, pos.y, this.car.radius + 26)) {
+      const obj = hit.value.obj;
+      const op = hit.value.kind === "ped" ? { x: obj.sprite.x, y: obj.sprite.y } : obj.position;
+      const radius = hit.value.kind === "ped" ? 7 : obj.radius;
+      if (Math.hypot(pos.x - op.x, pos.y - op.y) >= this.car.radius + radius) continue;
+      if (hit.value.kind === "ped") {
+        this.decor.scarePedestrian(obj);
+        this.registerPlayerCollision(pos, op, "ped");
+      } else {
+        this.decor.driverRantAt(op.x, op.y);
+        this.registerPlayerCollision(pos, op, "car");
+        if (obj.vehicleClass === "police" && !this.decor.hasActivePursuit()) {
           this.decor.triggerPolicePursuit(pos.x, pos.y);
           this.events.emit("wanted-changed", true);
           this.showToast("🚨 Die Polizei nimmt die Verfolgung auf!");
         }
-        return;
       }
+      return;
     }
 
-    // 2) Kollision mit geparkten Fahrzeugen – vorher wurden diese komplett ignoriert,
-    //    weshalb Rammen von parkenden Autos/Motorrädern keinen Schaden/Rauch auslöste.
-    for (const pv of this.decor.parked) {
-      const op = pv.car.position;
-      const dist = Math.hypot(pos.x - op.x, pos.y - op.y);
-      if (dist < this.car.radius + pv.car.radius) {
-        this.registerPlayerCollision(pos, op);
-        return;
-      }
-    }
+    if (!this.drivable.isDrivable(pos.x, pos.y)) this.registerPlayerCollision(pos, pos, "building");
+  }
+
+  private rebuildCollisionIndex() {
+    this.collisionIndex.clear();
+    for (const other of this.decor.getTrafficCars()) this.collisionIndex.insert({ ...other.position, radius: other.radius, value: { kind: "traffic", obj: other } });
+    for (const pv of this.decor.parked) if (!pv.taken) this.collisionIndex.insert({ ...pv.car.position, radius: pv.car.radius, value: { kind: "parked", obj: pv.car } });
+    for (const ped of this.decor.getPedestrians()) this.collisionIndex.insert({ x: ped.sprite.x, y: ped.sprite.y, radius: 7, value: { kind: "ped", obj: ped } });
   }
 
   /** Gemeinsame Kollisionsfolgen: Schaden hochzählen, abprallen, Toast/HUD aktualisieren. */
-  private registerPlayerCollision(pos: { x: number; y: number }, otherPos: { x: number; y: number }) {
+  private registerPlayerCollision(pos: { x: number; y: number }, otherPos: { x: number; y: number }, kind: "car" | "ped" | "building" = "car") {
     this.collisionCooldown = 0.6;
     const becameWreck = this.car.registerCollision();
+    this.sounds?.play(kind === "ped" ? "crashPed" : kind === "building" ? "crashBuilding" : "crashCar", 1, 0);
+    if (kind === "car") this.sounds?.play("angry", 1, 250);
     const ang = Math.atan2(pos.y - otherPos.y, pos.x - otherPos.x);
     this.car.sprite.x += Math.cos(ang) * 10;
     this.car.sprite.y += Math.sin(ang) * 10;
@@ -379,6 +404,7 @@ export class WorldScene extends Phaser.Scene {
       if (this.inVehicle && this.car) {
         this.car.update(dt, input, (x, y) => this.drivable.isDrivable(x, y));
         this.events.emit("speed-updated", this.car.currentSpeedKmh);
+        this.sounds?.update(this.car.currentSpeedKmh, this.decor.hasActivePursuit(), this.decor.pursuingPoliceDistance(this.car.position.x, this.car.position.y));
         this.handleCarCollisions(dt);
         this.radar?.update(this.car.position.x, this.car.position.y, this.car.sprite.rotation);
 
@@ -452,6 +478,7 @@ export class WorldScene extends Phaser.Scene {
     if (wanted !== this.lastWanted) {
       this.lastWanted = wanted;
       this.events.emit("wanted-changed", wanted);
+      this.workshopMarkers.forEach((m, i) => m.setVisible(i === 0 || wanted));
     }
     if (!wanted || !playerPos) {
       this.policeEscapeTimer = 0;

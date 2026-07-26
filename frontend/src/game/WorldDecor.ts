@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import { RoadGraph } from "./RoadGraph";
 import { Car, type VehicleClass } from "./Car";
 
-interface TrafficEntry {
+export interface TrafficEntry {
   car: Car;
   path: { x: number; y: number }[];
   idx: number;
@@ -24,7 +24,7 @@ export class WorldDecor {
   private staticObjects: Phaser.GameObjects.GameObject[] = [];
   traffic: TrafficEntry[] = [];
   parked: ParkedVehicle[] = [];
-  private peds: {
+  peds: {
     sprite: Phaser.GameObjects.Container;
     body: Phaser.GameObjects.Rectangle;
     head: Phaser.GameObjects.Arc;
@@ -35,6 +35,7 @@ export class WorldDecor {
     path: { x: number; y: number }[];
     idx: number;
     phase: number;
+    emotion: "neutral" | "angry" | "scared";
   }[] = [];
 
   constructor(
@@ -196,8 +197,12 @@ export class WorldDecor {
       const armR = this.scene.add.rectangle(3, -1, 1.6, 4.5, c).setAlpha(0.9);
       const body = this.scene.add.rectangle(0, -2, 5, 7, c);
       const head = this.scene.add.circle(0, -7, 2.5, 0xffe0b2);
+      const hair = this.scene.add.rectangle(0, -9, 4, 1.5, i % 2 ? 0x3e2723 : 0xf9a825);
+      const eyeL = this.scene.add.circle(-0.9, -7.4, 0.35, 0x111111);
+      const eyeR = this.scene.add.circle(0.9, -7.4, 0.35, 0x111111);
+      const mouth = this.scene.add.rectangle(0, -6.2, 1.6, 0.35, 0x5d4037);
       const container = this.scene.add
-        .container(path[0].x, path[0].y, [shadow, legL, legR, armL, armR, body, head])
+        .container(path[0].x, path[0].y, [shadow, legL, legR, armL, armR, body, head, hair, eyeL, eyeR, mouth])
         .setDepth(11);
       this.peds.push({
         sprite: container,
@@ -210,6 +215,7 @@ export class WorldDecor {
         path,
         idx: 0,
         phase: Math.random() * Math.PI * 2,
+        emotion: "neutral",
       });
     }
   }
@@ -285,6 +291,27 @@ export class WorldDecor {
   /** Alle NPC-Autos für Kollisionschecks */
   getTrafficCars(): Car[] {
     return this.traffic.map((t) => t.car);
+  }
+
+  getPedestrians() {
+    return this.peds;
+  }
+
+  getTrafficEntries() {
+    return this.traffic;
+  }
+
+  driverRantAt(x: number, y: number) {
+    const bubble = this.scene.add.text(x, y - 24, "🤬 Hey! Pass doch auf!", {
+      fontSize: "10px", color: "#ffeb3b", backgroundColor: "#330000cc", padding: { x: 4, y: 2 }
+    }).setOrigin(0.5).setDepth(40);
+    this.scene.tweens.add({ targets: bubble, y: y - 42, alpha: 0, duration: 1500, onComplete: () => bubble.destroy() });
+  }
+
+  scarePedestrian(ped: { sprite: Phaser.GameObjects.Container; emotion: "neutral" | "angry" | "scared" }) {
+    ped.emotion = "scared";
+    const shout = this.scene.add.text(ped.sprite.x, ped.sprite.y - 20, "😱", { fontSize: "13px" }).setOrigin(0.5).setDepth(40);
+    this.scene.tweens.add({ targets: [ped.sprite, shout], scale: 1.18, yoyo: true, duration: 120, repeat: 3, onComplete: () => shout.destroy() });
   }
 
   /** Setzt das nächste freie Polizeiauto in Verfolgungsmodus (löst die Fahndung aus). */

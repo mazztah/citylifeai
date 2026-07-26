@@ -236,6 +236,11 @@ export class Car {
     this.resetDamage();
   }
 
+  repaint() {
+    const palette = [0xffd23f, 0x1e88e5, 0x43a047, 0xe53935, 0x8e24aa, 0xffffff];
+    this.bodyRect.setFillStyle(palette[Math.floor(Math.random() * palette.length)]);
+  }
+
   update(
     dt: number,
     input: {

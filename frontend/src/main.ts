@@ -38,8 +38,8 @@ new Phaser.Game({
   },
   fps: {
     target: isMobile ? 40 : 60,
-    min: 20,
-    forceSetTimeOut: isMobile,
+    min: isMobile ? 24 : 30,
+    forceSetTimeOut: false,
   },
   physics: {
     default: undefined,

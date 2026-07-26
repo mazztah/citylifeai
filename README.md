@@ -131,7 +131,7 @@ Story-Bibel (Figuren, Spannungsbogen über 12 geplante Kapitel) steht in
 ## Straßen exakt auf der Basemap (Fly.io / Produktion)
 
 Die handkuratierte Fallback-Karte weicht von den echten OSM-Tiles ab. Beim
-**Docker-/Fly-Build** werden echte OpenStreetMap-Daten geladen und ins Frontend
+**Docker-/Fly-Build** werden yey echte OpenStreetMap-Daten geladen und ins Frontend
 eingebacken:
 
 ```bash

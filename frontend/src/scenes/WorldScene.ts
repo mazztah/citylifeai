@@ -313,32 +313,49 @@ export class WorldScene extends Phaser.Scene {
     if (this.collisionCooldown > 0) return;
 
     const pos = this.car.position;
+
+    // 1) Kollision mit fahrendem Verkehr (inkl. Polizei -> Fahndung)
     for (const other of this.decor.getTrafficCars()) {
       const op = other.position;
       const dist = Math.hypot(pos.x - op.x, pos.y - op.y);
       if (dist < this.car.radius + other.radius) {
-        this.collisionCooldown = 0.6;
-        const becameWreck = this.car.registerCollision();
-        // Abprallen
-        const ang = Math.atan2(pos.y - op.y, pos.x - op.x);
-        this.car.sprite.x += Math.cos(ang) * 10;
-        this.car.sprite.y += Math.sin(ang) * 10;
-        this.events.emit("damage-updated", this.car.collisionCount);
-
-        // Polizeiauto gerammt -> Fahndung startet
+        this.registerPlayerCollision(pos, op);
         if (other.vehicleClass === "police" && !this.decor.hasActivePursuit()) {
           this.decor.triggerPolicePursuit(pos.x, pos.y);
           this.events.emit("wanted-changed", true);
           this.showToast("🚨 Die Polizei nimmt die Verfolgung auf!");
-        } else if (becameWreck) {
-          this.showToast("💥 Auto schrottreif! E = aussteigen, neues Fahrzeug suchen");
-        } else if (this.car.collisionCount >= 4) {
-          this.showToast(`💨 Rauch! Schaden ${this.car.collisionCount}/10`);
-        } else {
-          this.showToast(`Kollision ${this.car.collisionCount}/10`);
         }
-        break;
+        return;
       }
+    }
+
+    // 2) Kollision mit geparkten Fahrzeugen – vorher wurden diese komplett ignoriert,
+    //    weshalb Rammen von parkenden Autos/Motorrädern keinen Schaden/Rauch auslöste.
+    for (const pv of this.decor.parked) {
+      const op = pv.car.position;
+      const dist = Math.hypot(pos.x - op.x, pos.y - op.y);
+      if (dist < this.car.radius + pv.car.radius) {
+        this.registerPlayerCollision(pos, op);
+        return;
+      }
+    }
+  }
+
+  /** Gemeinsame Kollisionsfolgen: Schaden hochzählen, abprallen, Toast/HUD aktualisieren. */
+  private registerPlayerCollision(pos: { x: number; y: number }, otherPos: { x: number; y: number }) {
+    this.collisionCooldown = 0.6;
+    const becameWreck = this.car.registerCollision();
+    const ang = Math.atan2(pos.y - otherPos.y, pos.x - otherPos.x);
+    this.car.sprite.x += Math.cos(ang) * 10;
+    this.car.sprite.y += Math.sin(ang) * 10;
+    this.events.emit("damage-updated", this.car.collisionCount);
+
+    if (becameWreck) {
+      this.showToast("💥 Auto schrottreif! E = aussteigen, neues Fahrzeug suchen");
+    } else if (this.car.collisionCount >= 4) {
+      this.showToast(`💨 Rauch! Schaden ${this.car.collisionCount}/10`);
+    } else {
+      this.showToast(`Kollision ${this.car.collisionCount}/10`);
     }
   }
 

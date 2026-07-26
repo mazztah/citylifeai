@@ -50,9 +50,15 @@ export class CameraZoomController {
   }
 
   private handlePinch() {
-    const p1 = this.scene.input.pointer1;
     const p2 = this.scene.input.pointer2;
-    if (!p1 || !p2 || !p1.isDown || !p2.isDown) {
+    // Kein zweiter aktiver Pointer -> auf Desktop mit Maus praktisch immer der Fall.
+    // Früh raus, bevor überhaupt der erste Pointer/Distanz berechnet wird.
+    if (!p2 || !p2.isDown) {
+      this.pinchStartDist = null;
+      return;
+    }
+    const p1 = this.scene.input.pointer1;
+    if (!p1 || !p1.isDown) {
       this.pinchStartDist = null;
       return;
     }

@@ -46,9 +46,9 @@ export class WorldDecor {
     if (!this.graph.roads.length) return;
     this.spawnTreesNearParks(mobile ? 3 : 6);
     if (!mobile) this.spawnStreetLights();
-    this.spawnTraffic(mobile ? 4 : 8);
-    this.spawnPedestrians(mobile ? 6 : 10);
-    this.spawnParkedVehicles(mobile ? 6 : 12);
+    this.spawnTraffic(mobile ? 3 : 6);
+    this.spawnPedestrians(mobile ? 5 : 8);
+    this.spawnParkedVehicles(mobile ? 4 : 8);
   }
 
   /** Parkende Autos/Motorräder am Straßenrand – der Spieler kann sie benutzen. */

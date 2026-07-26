@@ -79,20 +79,22 @@ export class Car {
 
     const extras: Phaser.GameObjects.GameObject[] = [];
     let parts: Phaser.GameObjects.GameObject[];
+    // Nur das Spieler-Auto bekommt das volle Detail (4 Einzelräder, Dach, Heckscheibe).
+    // NPC/geparkte Fahrzeuge werden bewusst simpel gehalten – bei vielen Fahrzeugen in der
+    // Stadt macht das einen spürbaren Unterschied für die Framerate.
+    const detailed = vehicleClass === "player";
 
     if (this.isMotorcycle) {
       const shadow = scene.add.ellipse(1, 2, w + 3, h + 3, 0x000000, 0.3);
       const wheelR = scene.add.circle(w * 0.34, 0, 3.4, 0x111111);
       const wheelF = scene.add.circle(-w * 0.34, 0, 3.4, 0x111111);
       this.bodyRect = scene.add.rectangle(0, 0, w * 0.62, h, bodyColor).setStrokeStyle(1, 0x111111);
-      const seat = scene.add.rectangle(w * 0.05, -1.5, w * 0.32, 2.4, 0x1a1a1a);
-      const windshieldM = scene.add.rectangle(-w * 0.32, -0.5, 2.4, 4.5, 0x81d4fa, 0.85);
       const hl1 = scene.add.rectangle(-w * 0.42, 0, 2.4, 2.4, 0xfff9c4);
       this.headLights = [hl1];
       const bl1 = scene.add.rectangle(w * 0.42, 0, 2.2, 2.2, 0xb71c1c);
       this.brakeLights = [bl1];
-      parts = [shadow, wheelR, wheelF, this.bodyRect, seat, windshieldM, hl1, bl1];
-    } else {
+      parts = [shadow, wheelR, wheelF, this.bodyRect, hl1, bl1];
+    } else if (detailed) {
       const shadow = scene.add.ellipse(1, 3, w + 4, h + 2, 0x000000, 0.3);
       const fl = scene.add.rectangle(-w * 0.28, -h * 0.55, 5, 3, 0x1a1a1a);
       const fr = scene.add.rectangle(-w * 0.28, h * 0.55, 5, 3, 0x1a1a1a);
@@ -111,8 +113,31 @@ export class Car {
       const bl2 = scene.add.rectangle(w * 0.48, h * 0.28, 3, 3, 0xb71c1c);
       this.brakeLights = [bl1, bl2];
 
+      parts = [
+        shadow,
+        fl,
+        fr,
+        rl,
+        rr,
+        this.bodyRect,
+        roof,
+        windshield,
+        rearWindow,
+        ...this.headLights,
+        ...this.brakeLights,
+      ];
+    } else {
+      // Vereinfachte Version: Schatten, Karosserie, Frontscheibe, je 1 Licht vorn/hinten
+      const shadow = scene.add.ellipse(1, 2.5, w + 3, h + 1.5, 0x000000, 0.26);
+      this.bodyRect = scene.add.rectangle(0, 0, w, h, bodyColor).setStrokeStyle(1, 0x111111);
+      const windshield = scene.add.rectangle(-w * 0.2, 0, w * 0.24, h * 0.6, 0x81d4fa, 0.8);
+      const hl1 = scene.add.rectangle(-w * 0.48, 0, 3, h * 0.5, 0xfff9c4);
+      this.headLights = [hl1];
+      const bl1 = scene.add.rectangle(w * 0.48, 0, 3, h * 0.5, 0xb71c1c);
+      this.brakeLights = [bl1];
+      parts = [shadow, this.bodyRect, windshield, hl1, bl1];
+
       if (vehicleClass === "taxi") {
-        extras.push(scene.add.rectangle(0, 0, 8, 4, 0x222222));
         extras.push(scene.add.rectangle(0, -1, 6, 2, 0xffc107));
       }
       if (vehicleClass === "police") {
@@ -130,20 +155,7 @@ export class Car {
           },
         });
       }
-      parts = [
-        shadow,
-        fl,
-        fr,
-        rl,
-        rr,
-        this.bodyRect,
-        roof,
-        windshield,
-        rearWindow,
-        ...this.headLights,
-        ...this.brakeLights,
-        ...extras,
-      ];
+      parts.push(...extras);
     }
 
     this.sprite = scene.add.container(x, y, parts);

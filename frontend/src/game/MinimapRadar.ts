@@ -16,6 +16,8 @@ export class MinimapRadar {
   private cx: number;
   private cy: number;
   private missions: { x: number; y: number; story: boolean }[] = [];
+  private lastRedrawX = Infinity;
+  private lastRedrawY = Infinity;
 
   constructor(
     private scene: Phaser.Scene,
@@ -77,7 +79,13 @@ export class MinimapRadar {
   }
 
   update(playerX: number, playerY: number, angleRad: number) {
-    this.redrawRoads(playerX, playerY);
+    // Straßen nur neu zeichnen, wenn sich der Spieler spürbar bewegt hat – spart auf Dauer
+    // viele überflüssige Graphics-Redraws pro Sekunde.
+    if (Math.hypot(playerX - this.lastRedrawX, playerY - this.lastRedrawY) > 10) {
+      this.redrawRoads(playerX, playerY);
+      this.lastRedrawX = playerX;
+      this.lastRedrawY = playerY;
+    }
     this.overlayGfx.clear();
     for (const m of this.missions) {
       const { x, y } = this.toRadar(m.x - playerX, m.y - playerY);

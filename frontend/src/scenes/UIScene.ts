@@ -8,6 +8,9 @@ export class UIScene extends Phaser.Scene {
   private speedText!: Phaser.GameObjects.Text;
   private damageText!: Phaser.GameObjects.Text;
   private modeBtn!: Phaser.GameObjects.Container;
+  private repairBtn!: Phaser.GameObjects.Container;
+  private wantedText!: Phaser.GameObjects.Text;
+  private wantedTween?: Phaser.Tweens.Tween;
 
   constructor() {
     super("UIScene");
@@ -70,6 +73,19 @@ export class UIScene extends Phaser.Scene {
       .setScrollFactor(0)
       .setDepth(100);
 
+    this.wantedText = this.add
+      .text(0, 0, "🚨 GESUCHT", {
+        fontSize: "14px",
+        color: "#ff5252",
+        backgroundColor: "#1a0000cc",
+        padding: { x: 10, y: 5 },
+        fontStyle: "bold",
+      })
+      .setOrigin(0.5, 0)
+      .setScrollFactor(0)
+      .setDepth(120)
+      .setVisible(false);
+
     this.add
       .text(0, 8, "© OSM · CARTO", {
         fontSize: "9px",
@@ -91,6 +107,15 @@ export class UIScene extends Phaser.Scene {
       world.toggleVehicle?.();
     });
 
+    // Reparieren-Button (v.a. für Mobile ohne Tastatur, gleiche Funktion wie Taste R)
+    const repBg = this.add.rectangle(0, 0, 88, 30, 0x1a2332, 0.85).setStrokeStyle(1, 0xffd23f);
+    const repLabel = this.add.text(0, 0, "🔧 Reparieren", { fontSize: "11px", color: "#fff" }).setOrigin(0.5);
+    this.repairBtn = this.add.container(0, 0, [repBg, repLabel]).setScrollFactor(0).setDepth(110);
+    repBg.setInteractive({ useHandCursor: true });
+    repBg.on("pointerdown", () => {
+      world.tryRepairAtWorkshop?.();
+    });
+
     this.layoutHud();
     this.scale.on("resize", () => this.layoutHud());
 
@@ -103,12 +128,28 @@ export class UIScene extends Phaser.Scene {
     world.events.on("mission-completed", (mission: Mission) => this.flashMissionComplete(mission));
     world.events.on("damage-updated", (n: number) => {
       if (n <= 0) this.damageText.setText("");
-      else if (n >= 10) this.damageText.setText("💀 Schrottreif");
-      else if (n >= 4) this.damageText.setText(`💨 Schaden ${n}/10`);
-      else this.damageText.setText(`Schaden ${n}/10`);
+      else if (n >= 10) this.damageText.setText("💀 Schrottreif – E = neues Fahrzeug suchen");
+      else if (n >= 4) this.damageText.setText(`💨 Schaden ${n}/10 · 🔧 Werkstatt (R)`);
+      else this.damageText.setText(`Schaden ${n}/10 · 🔧 Werkstatt (R)`);
     });
     world.events.on("mode-changed", (mode: string) => {
       btnLabel.setText(mode === "walk" ? "🚗 Ein" : "🚶 Aus");
+    });
+    world.events.on("wanted-changed", (wanted: boolean) => {
+      this.wantedText.setVisible(wanted);
+      this.wantedTween?.stop();
+      if (wanted) {
+        this.wantedText.setAlpha(1).setScale(1);
+        this.wantedTween = this.tweens.add({
+          targets: this.wantedText,
+          alpha: 0.45,
+          scale: 1.08,
+          duration: 420,
+          yoyo: true,
+          repeat: -1,
+          ease: "Sine.easeInOut",
+        });
+      }
     });
   }
 
@@ -120,6 +161,8 @@ export class UIScene extends Phaser.Scene {
     this.speedText.setPosition(w - 10, h * 0.62);
     this.damageText.setPosition(w - 10, 48);
     this.modeBtn.setPosition(w - 56, 90);
+    this.repairBtn.setPosition(w - 56, 128);
+    this.wantedText.setPosition(w / 2, 8);
     this.children.each((c: any) => {
       if (c.text === "© OSM · CARTO") c.setPosition(w - 8, 8);
     });

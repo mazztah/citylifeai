@@ -44,6 +44,10 @@ new Phaser.Game({
   physics: {
     default: undefined,
   },
+  input: {
+    // 2 aktive Touch-Pointer nötig für Zwei-Finger-Pinch-Zoom auf dem Smartphone
+    activePointers: 2,
+  },
   scene: [BootScene, WorldScene, UIScene],
   banner: false,
 });

@@ -65,13 +65,21 @@ html, body {
   position: fixed;
   top: 18%;
   left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0,0,0,0.75);
+  transform: translateX(-50%) translateY(-6px) scale(0.96);
+  background: rgba(0,0,0,0.78);
   color: #ff8a80;
-  padding: 8px 14px;
-  border-radius: 10px;
+  padding: 9px 16px;
+  border-radius: 12px;
   font-size: 13px;
   z-index: 60;
   display: none;
   pointer-events: none;
+  opacity: 0;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.35);
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+#damage-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0) scale(1);
 }

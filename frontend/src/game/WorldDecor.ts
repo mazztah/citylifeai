@@ -2,17 +2,36 @@ import Phaser from "phaser";
 import { RoadGraph } from "./RoadGraph";
 import { Car, type VehicleClass } from "./Car";
 
+interface TrafficEntry {
+  car: Car;
+  path: { x: number; y: number }[];
+  idx: number;
+  speed: number;
+  isPolice: boolean;
+  /** true = verfolgt aktuell den Spieler statt der Patrouillenroute */
+  pursuing: boolean;
+}
+
+export interface ParkedVehicle {
+  car: Car;
+  taken: boolean;
+}
+
 /**
  * Belebt die Welt – reduziert auf Mobile (weniger Traffic/Peds/Bäume).
  */
 export class WorldDecor {
   private staticObjects: Phaser.GameObjects.GameObject[] = [];
-  traffic: { car: Car; path: { x: number; y: number }[]; idx: number; speed: number }[] = [];
+  traffic: TrafficEntry[] = [];
+  parked: ParkedVehicle[] = [];
   private peds: {
     sprite: Phaser.GameObjects.Container;
     body: Phaser.GameObjects.Rectangle;
+    head: Phaser.GameObjects.Arc;
     legL: Phaser.GameObjects.Rectangle;
     legR: Phaser.GameObjects.Rectangle;
+    armL: Phaser.GameObjects.Rectangle;
+    armR: Phaser.GameObjects.Rectangle;
     path: { x: number; y: number }[];
     idx: number;
     phase: number;
@@ -29,6 +48,62 @@ export class WorldDecor {
     if (!mobile) this.spawnStreetLights();
     this.spawnTraffic(mobile ? 4 : 8);
     this.spawnPedestrians(mobile ? 6 : 10);
+    this.spawnParkedVehicles(mobile ? 6 : 12);
+  }
+
+  /** Parkende Autos/Motorräder am Straßenrand – der Spieler kann sie benutzen. */
+  private spawnParkedVehicles(count: number) {
+    const roads = this.graph.roads.filter((r) => r.points.length >= 2 && r.kind !== "tertiary");
+    if (!roads.length) return;
+    for (let i = 0; i < count; i++) {
+      const road = roads[Math.floor(Math.random() * roads.length)];
+      const idx = Math.floor(Math.random() * (road.points.length - 1));
+      const a = road.points[idx];
+      const b = road.points[idx + 1];
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const len = Math.hypot(dx, dy) || 1;
+      const side = Math.random() > 0.5 ? 1 : -1;
+      const offset = side * 26;
+      const px = a.x + (-dy / len) * offset;
+      const py = a.y + (dx / len) * offset;
+      const angle = Math.atan2(dy, dx);
+      const isMoto = Math.random() < 0.3;
+      const cls: VehicleClass = isMoto ? "motorcycle" : "civilian";
+      const car = new Car(this.scene, px, py, cls, {
+        colorVariant: Math.floor(Math.random() * 7),
+      });
+      car.setAngle(angle);
+      car.sprite.setDepth(9);
+      car.sprite.setAlpha(0.96);
+      this.parked.push({ car, taken: false });
+    }
+  }
+
+  /** Nächstes freies geparktes Fahrzeug in Reichweite (für "Einsteigen"). */
+  findNearbyParkedVehicle(x: number, y: number, maxDist = 34): ParkedVehicle | null {
+    let best: ParkedVehicle | null = null;
+    let bestDist = maxDist;
+    for (const pv of this.parked) {
+      if (pv.taken) continue;
+      const d = Phaser.Math.Distance.Between(x, y, pv.car.position.x, pv.car.position.y);
+      if (d < bestDist) {
+        bestDist = d;
+        best = pv;
+      }
+    }
+    return best;
+  }
+
+  /** Entfernt ein bereits übernommenes Fahrzeug aus dem Deko-Pool. */
+  removeParkedVehicle(pv: ParkedVehicle) {
+    this.parked = this.parked.filter((p) => p !== pv);
+  }
+
+  /** Setzt ein zurückgelassenes Fahrzeug als "geparkt" wieder in die Welt. */
+  releaseAsParked(car: Car) {
+    car.sprite.setDepth(9);
+    this.parked.push({ car, taken: false });
   }
 
   private spawnTreesNearParks(perPark: number) {
@@ -73,7 +148,8 @@ export class WorldDecor {
   private spawnTraffic(count: number) {
     const roads = this.graph.roads.filter((r) => r.points.length >= 2);
     if (!roads.length) return;
-    const classes: VehicleClass[] = ["taxi", "civilian", "delivery", "suv"];
+    // Ein Streifenwagen ist immer dabei, Rest gemischter Verkehr.
+    const classes: VehicleClass[] = ["taxi", "civilian", "delivery", "suv", "police"];
 
     for (let i = 0; i < count; i++) {
       const road = roads[Math.floor(Math.random() * roads.length)];
@@ -82,7 +158,8 @@ export class WorldDecor {
       const start = path[0];
       const next = path[1] || start;
       const angle = Math.atan2(next.y - start.y, next.x - start.x);
-      const cls = classes[i % classes.length];
+      const isPolice = i === 0 || (count > 5 && i === Math.floor(count / 2));
+      const cls: VehicleClass = isPolice ? "police" : classes[i % (classes.length - 1)];
       const car = new Car(this.scene, start.x, start.y, cls);
       car.setAngle(angle);
       car.sprite.setDepth(12);
@@ -91,6 +168,8 @@ export class WorldDecor {
         path,
         idx: 0,
         speed: 35 + Math.random() * 45,
+        isPolice: cls === "police",
+        pursuing: false,
       });
     }
   }
@@ -109,20 +188,50 @@ export class WorldDecor {
         return { x: p.x + (-dy / len) * 16, y: p.y + (dx / len) * 16 };
       });
       const c = colors[i % colors.length];
-      // Einfache „CSS-artige“ Figur: Körper + Beine die phasenverschoben wippen
-      const body = this.scene.add.rectangle(0, -2, 5, 7, c);
-      const head = this.scene.add.circle(0, -7, 2.5, 0xffe0b2);
+      // Kleine Figur mit Armen + Beinen, die beim Laufen gegenläufig schwingen und leicht hüpfen.
+      const shadow = this.scene.add.ellipse(0, 5.5, 7, 2.6, 0x000000, 0.28);
       const legL = this.scene.add.rectangle(-1.5, 3, 2, 5, 0x37474f);
       const legR = this.scene.add.rectangle(1.5, 3, 2, 5, 0x455a64);
+      const armL = this.scene.add.rectangle(-3, -1, 1.6, 4.5, c).setAlpha(0.9);
+      const armR = this.scene.add.rectangle(3, -1, 1.6, 4.5, c).setAlpha(0.9);
+      const body = this.scene.add.rectangle(0, -2, 5, 7, c);
+      const head = this.scene.add.circle(0, -7, 2.5, 0xffe0b2);
       const container = this.scene.add
-        .container(path[0].x, path[0].y, [legL, legR, body, head])
+        .container(path[0].x, path[0].y, [shadow, legL, legR, armL, armR, body, head])
         .setDepth(11);
-      this.peds.push({ sprite: container, body, legL, legR, path, idx: 0, phase: Math.random() * Math.PI * 2 });
+      this.peds.push({
+        sprite: container,
+        body,
+        head,
+        legL,
+        legR,
+        armL,
+        armR,
+        path,
+        idx: 0,
+        phase: Math.random() * Math.PI * 2,
+      });
     }
   }
 
-  update(dt: number) {
+  /**
+   * @param player Wenn gesetzt, jagt jedes `pursuing`-Polizeiauto diese Position direkt an.
+   */
+  update(dt: number, player?: { x: number; y: number }) {
     for (const t of this.traffic) {
+      if (t.pursuing && player) {
+        const pos = t.car.position;
+        const dx = player.x - pos.x;
+        const dy = player.y - pos.y;
+        const dist = Math.hypot(dx, dy) || 1;
+        const targetAngle = Math.atan2(dy, dx);
+        // Sanft zur Zielrichtung drehen statt sofort einzurasten – wirkt organischer.
+        const next = Phaser.Math.Angle.RotateTo(t.car.currentAngle, targetAngle, 4.5 * dt);
+        t.car.setAngle(next);
+        t.car.updateNpc(dt, Math.min(t.speed * 1.9, dist * 3 + 60));
+        continue;
+      }
+
       if (t.idx >= t.path.length - 1) {
         t.idx = 0;
         const p = t.path[0];
@@ -159,11 +268,16 @@ export class WorldDecor {
       const sp = 20;
       ped.sprite.x += (dx / dist) * sp * dt;
       ped.sprite.y += (dy / dist) * sp * dt;
-      // Geh-Animation: Beine schwingen
+      // Geh-Animation: Beine + Arme schwingen gegenläufig, Körper hüpft leicht mit.
       ped.phase += dt * 10;
       const swing = Math.sin(ped.phase) * 2.2;
+      const bob = Math.abs(Math.sin(ped.phase)) * 0.9;
       ped.legL.y = 3 + swing;
       ped.legR.y = 3 - swing;
+      ped.armL.y = -1 - swing * 0.7;
+      ped.armR.y = -1 + swing * 0.7;
+      ped.body.y = -2 - bob;
+      ped.head.y = -7 - bob;
       ped.sprite.setRotation(Math.atan2(dy, dx) + Math.PI / 2);
     }
   }
@@ -173,9 +287,47 @@ export class WorldDecor {
     return this.traffic.map((t) => t.car);
   }
 
+  /** Setzt das nächste freie Polizeiauto in Verfolgungsmodus (löst die Fahndung aus). */
+  triggerPolicePursuit(fromX: number, fromY: number): boolean {
+    let nearest: TrafficEntry | null = null;
+    let bestDist = Infinity;
+    for (const t of this.traffic) {
+      if (!t.isPolice || t.pursuing) continue;
+      const d = Phaser.Math.Distance.Between(fromX, fromY, t.car.position.x, t.car.position.y);
+      if (d < bestDist) {
+        bestDist = d;
+        nearest = t;
+      }
+    }
+    if (!nearest) return false;
+    nearest.pursuing = true;
+    return true;
+  }
+
+  /** Bricht jede aktive Verfolgung ab (z.B. nach Strafzettel oder wenn der Spieler entkommt). */
+  clearPolicePursuit() {
+    for (const t of this.traffic) t.pursuing = false;
+  }
+
+  hasActivePursuit(): boolean {
+    return this.traffic.some((t) => t.pursuing);
+  }
+
+  /** Distanz zum nächsten verfolgenden Polizeiauto, oder null wenn keine Verfolgung aktiv ist. */
+  pursuingPoliceDistance(x: number, y: number): number | null {
+    let best: number | null = null;
+    for (const t of this.traffic) {
+      if (!t.pursuing) continue;
+      const d = Phaser.Math.Distance.Between(x, y, t.car.position.x, t.car.position.y);
+      if (best === null || d < best) best = d;
+    }
+    return best;
+  }
+
   destroy() {
     for (const o of this.staticObjects) o.destroy();
     for (const t of this.traffic) t.car.destroy();
     for (const p of this.peds) p.sprite.destroy();
+    for (const p of this.parked) p.car.destroy();
   }
 }

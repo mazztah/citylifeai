@@ -6,7 +6,8 @@ export type VehicleClass =
   | "delivery"
   | "police"
   | "civilian"
-  | "suv";
+  | "suv"
+  | "motorcycle";
 
 const VEHICLE_COLORS: Record<VehicleClass, { body: number; accent: number }> = {
   player: { body: 0xffd23f, accent: 0xe8b800 },
@@ -15,7 +16,11 @@ const VEHICLE_COLORS: Record<VehicleClass, { body: number; accent: number }> = {
   police: { body: 0x1a237e, accent: 0xffffff },
   civilian: { body: 0xe53935, accent: 0xb71c1c },
   suv: { body: 0x37474f, accent: 0x263238 },
+  motorcycle: { body: 0x263238, accent: 0xff7043 },
 };
+
+/** Zufällige Lack-Varianten für Zivil-Fahrzeuge, damit geparkte Autos nicht alle gleich aussehen. */
+const CIVILIAN_PALETTE = [0xe53935, 0x43a047, 0x1e88e5, 0x8e24aa, 0xfb8c00, 0x546e7a, 0xd81b60];
 
 export type DrivableCheck = (x: number, y: number) => boolean;
 
@@ -31,10 +36,12 @@ export class Car {
 
   private readonly maxSpeedBase: number;
   private readonly acceleration: number;
-  private readonly brakingForce = 480;
-  private readonly friction = 160;
-  private readonly turnRateBase = 2.8;
+  private readonly brakingForce: number;
+  private readonly friction: number;
+  private readonly turnRateBase: number;
+  private readonly minTurnFactor: number;
   readonly vehicleClass: VehicleClass;
+  readonly isMotorcycle: boolean;
 
   /** 0–10 Kollisionen; ab 4 Rauch, ab 10 total */
   collisionCount = 0;
@@ -45,59 +52,101 @@ export class Car {
     x: number,
     y: number,
     vehicleClass: VehicleClass = "player",
-    opts?: { maxSpeed?: number; acceleration?: number }
+    opts?: { maxSpeed?: number; acceleration?: number; colorVariant?: number }
   ) {
     this.sceneRef = scene;
     this.vehicleClass = vehicleClass;
+    this.isMotorcycle = vehicleClass === "motorcycle";
     const colors = VEHICLE_COLORS[vehicleClass];
+    const bodyColor =
+      opts?.colorVariant != null && vehicleClass === "civilian"
+        ? CIVILIAN_PALETTE[opts.colorVariant % CIVILIAN_PALETTE.length]
+        : colors.body;
     const isSuv = vehicleClass === "suv" || vehicleClass === "delivery";
-    const w = isSuv ? 26 : 24;
-    const h = isSuv ? 14 : 12;
+    const w = this.isMotorcycle ? 16 : isSuv ? 26 : 24;
+    const h = this.isMotorcycle ? 7 : isSuv ? 14 : 12;
 
-    this.maxSpeedBase = opts?.maxSpeed ?? (vehicleClass === "player" ? 240 : 140);
-    this.acceleration = opts?.acceleration ?? (vehicleClass === "player" ? 260 : 140);
-
-    const shadow = scene.add.ellipse(1, 3, w + 4, h + 2, 0x000000, 0.3);
-    const fl = scene.add.rectangle(-w * 0.28, -h * 0.55, 5, 3, 0x1a1a1a);
-    const fr = scene.add.rectangle(-w * 0.28, h * 0.55, 5, 3, 0x1a1a1a);
-    const rl = scene.add.rectangle(w * 0.28, -h * 0.55, 5, 3, 0x1a1a1a);
-    const rr = scene.add.rectangle(w * 0.28, h * 0.55, 5, 3, 0x1a1a1a);
-
-    this.bodyRect = scene.add.rectangle(0, 0, w, h, colors.body).setStrokeStyle(1, 0x111111);
-    const roof = scene.add.rectangle(1, 0, w * 0.42, h * 0.72, colors.accent).setAlpha(0.35);
-    const windshield = scene.add.rectangle(-w * 0.22, 0, w * 0.22, h * 0.62, 0x81d4fa, 0.85);
-    const rearWindow = scene.add.rectangle(w * 0.2, 0, w * 0.16, h * 0.55, 0x4fc3f7, 0.7);
-
-    const hl1 = scene.add.rectangle(-w * 0.48, -h * 0.28, 3, 3, 0xfff9c4);
-    const hl2 = scene.add.rectangle(-w * 0.48, h * 0.28, 3, 3, 0xfff9c4);
-    this.headLights = [hl1, hl2];
-    const bl1 = scene.add.rectangle(w * 0.48, -h * 0.28, 3, 3, 0xb71c1c);
-    const bl2 = scene.add.rectangle(w * 0.48, h * 0.28, 3, 3, 0xb71c1c);
-    this.brakeLights = [bl1, bl2];
+    // Spürbar direktere, agilere Fahrphysik – v.a. für den Spieler.
+    this.maxSpeedBase =
+      opts?.maxSpeed ?? (vehicleClass === "player" ? 300 : this.isMotorcycle ? 190 : 150);
+    this.acceleration =
+      opts?.acceleration ?? (vehicleClass === "player" ? 400 : this.isMotorcycle ? 320 : 160);
+    this.brakingForce = vehicleClass === "player" ? 620 : 480;
+    this.friction = vehicleClass === "player" ? 110 : 160;
+    this.turnRateBase = vehicleClass === "player" ? (this.isMotorcycle ? 4.4 : 3.8) : 2.8;
+    // Auch bei niedrigem Tempo spürbar lenkbar – vorher fühlte sich das "schwergängig" an.
+    this.minTurnFactor = vehicleClass === "player" ? 0.4 : 0.12;
 
     const extras: Phaser.GameObjects.GameObject[] = [];
-    if (vehicleClass === "taxi") {
-      extras.push(scene.add.rectangle(0, 0, 8, 4, 0x222222));
-      extras.push(scene.add.rectangle(0, -1, 6, 2, 0xffc107));
-    }
-    if (vehicleClass === "police") {
-      extras.push(scene.add.rectangle(0, 0, 10, 3, 0x1565c0));
+    let parts: Phaser.GameObjects.GameObject[];
+
+    if (this.isMotorcycle) {
+      const shadow = scene.add.ellipse(1, 2, w + 3, h + 3, 0x000000, 0.3);
+      const wheelR = scene.add.circle(w * 0.34, 0, 3.4, 0x111111);
+      const wheelF = scene.add.circle(-w * 0.34, 0, 3.4, 0x111111);
+      this.bodyRect = scene.add.rectangle(0, 0, w * 0.62, h, bodyColor).setStrokeStyle(1, 0x111111);
+      const seat = scene.add.rectangle(w * 0.05, -1.5, w * 0.32, 2.4, 0x1a1a1a);
+      const windshieldM = scene.add.rectangle(-w * 0.32, -0.5, 2.4, 4.5, 0x81d4fa, 0.85);
+      const hl1 = scene.add.rectangle(-w * 0.42, 0, 2.4, 2.4, 0xfff9c4);
+      this.headLights = [hl1];
+      const bl1 = scene.add.rectangle(w * 0.42, 0, 2.2, 2.2, 0xb71c1c);
+      this.brakeLights = [bl1];
+      parts = [shadow, wheelR, wheelF, this.bodyRect, seat, windshieldM, hl1, bl1];
+    } else {
+      const shadow = scene.add.ellipse(1, 3, w + 4, h + 2, 0x000000, 0.3);
+      const fl = scene.add.rectangle(-w * 0.28, -h * 0.55, 5, 3, 0x1a1a1a);
+      const fr = scene.add.rectangle(-w * 0.28, h * 0.55, 5, 3, 0x1a1a1a);
+      const rl = scene.add.rectangle(w * 0.28, -h * 0.55, 5, 3, 0x1a1a1a);
+      const rr = scene.add.rectangle(w * 0.28, h * 0.55, 5, 3, 0x1a1a1a);
+
+      this.bodyRect = scene.add.rectangle(0, 0, w, h, bodyColor).setStrokeStyle(1, 0x111111);
+      const roof = scene.add.rectangle(1, 0, w * 0.42, h * 0.72, colors.accent).setAlpha(0.35);
+      const windshield = scene.add.rectangle(-w * 0.22, 0, w * 0.22, h * 0.62, 0x81d4fa, 0.85);
+      const rearWindow = scene.add.rectangle(w * 0.2, 0, w * 0.16, h * 0.55, 0x4fc3f7, 0.7);
+
+      const hl1 = scene.add.rectangle(-w * 0.48, -h * 0.28, 3, 3, 0xfff9c4);
+      const hl2 = scene.add.rectangle(-w * 0.48, h * 0.28, 3, 3, 0xfff9c4);
+      this.headLights = [hl1, hl2];
+      const bl1 = scene.add.rectangle(w * 0.48, -h * 0.28, 3, 3, 0xb71c1c);
+      const bl2 = scene.add.rectangle(w * 0.48, h * 0.28, 3, 3, 0xb71c1c);
+      this.brakeLights = [bl1, bl2];
+
+      if (vehicleClass === "taxi") {
+        extras.push(scene.add.rectangle(0, 0, 8, 4, 0x222222));
+        extras.push(scene.add.rectangle(0, -1, 6, 2, 0xffc107));
+      }
+      if (vehicleClass === "police") {
+        const bar = scene.add.rectangle(0, 0, 10, 3, 0x1565c0);
+        extras.push(bar);
+        // Blaulicht-Puls – schön anzusehen und liest sich sofort als "Polizei".
+        let blueOn = true;
+        scene.time.addEvent({
+          delay: 260,
+          loop: true,
+          callback: () => {
+            if (!bar.active) return;
+            blueOn = !blueOn;
+            bar.setFillStyle(blueOn ? 0x1565c0 : 0xff1744);
+          },
+        });
+      }
+      parts = [
+        shadow,
+        fl,
+        fr,
+        rl,
+        rr,
+        this.bodyRect,
+        roof,
+        windshield,
+        rearWindow,
+        ...this.headLights,
+        ...this.brakeLights,
+        ...extras,
+      ];
     }
 
-    this.sprite = scene.add.container(x, y, [
-      shadow,
-      fl,
-      fr,
-      rl,
-      rr,
-      this.bodyRect,
-      roof,
-      windshield,
-      rearWindow,
-      ...this.headLights,
-      ...this.brakeLights,
-      ...extras,
-    ]);
+    this.sprite = scene.add.container(x, y, parts);
     this.sprite.setSize(w, h);
     this.sprite.setDepth(20);
 
@@ -170,6 +219,11 @@ export class Car {
     this.bodyRect.setFillStyle(VEHICLE_COLORS[this.vehicleClass].body);
   }
 
+  /** Alias für die Werkstatt-Reparatur – funktional identisch zu resetDamage(). */
+  repair() {
+    this.resetDamage();
+  }
+
   update(
     dt: number,
     input: {
@@ -206,8 +260,12 @@ export class Car {
         else if (this.speed < 0) this.speed = Math.min(0, this.speed + this.friction * dt);
       }
       this.speed = Phaser.Math.Clamp(this.speed, -this.maxSpeed * 0.4, this.maxSpeed);
-      const speedFactor = Phaser.Math.Clamp(Math.abs(this.speed) / this.maxSpeedBase, 0.12, 1);
-      if (Math.abs(axisX) > 0.12) {
+      const speedFactor = Phaser.Math.Clamp(
+        Math.abs(this.speed) / this.maxSpeedBase,
+        this.minTurnFactor,
+        1
+      );
+      if (Math.abs(axisX) > 0.1) {
         this.angle += axisX * this.turnRateBase * speedFactor * (this.speed < 0 ? -1 : 1) * dt;
       }
     } else {
@@ -220,7 +278,11 @@ export class Car {
         else if (this.speed < 0) this.speed = Math.min(0, this.speed + this.friction * dt);
       }
       this.speed = Phaser.Math.Clamp(this.speed, -this.maxSpeed * 0.45, this.maxSpeed);
-      const speedFactor = Phaser.Math.Clamp(Math.abs(this.speed) / this.maxSpeedBase, 0.12, 1);
+      const speedFactor = Phaser.Math.Clamp(
+        Math.abs(this.speed) / this.maxSpeedBase,
+        this.minTurnFactor,
+        1
+      );
       const turnRate = this.turnRateBase * speedFactor * (this.speed < 0 ? -1 : 1);
       if (input.left) this.angle -= turnRate * dt;
       if (input.right) this.angle += turnRate * dt;
@@ -271,6 +333,10 @@ export class Car {
     this.sprite.rotation = rad;
   }
 
+  get currentAngle() {
+    return this.angle;
+  }
+
   get position() {
     return { x: this.sprite.x, y: this.sprite.y };
   }
@@ -281,7 +347,7 @@ export class Car {
 
   /** Bounding radius für Auto-Auto-Kollision */
   get radius() {
-    return 14;
+    return this.isMotorcycle ? 9 : 14;
   }
 
   destroy() {

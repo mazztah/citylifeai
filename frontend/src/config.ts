@@ -66,3 +66,7 @@ export const GAME_HEIGHT = 800;
 /** Zoom: Auto / zu Fuß */
 export const ZOOM_DRIVING = 1.05;
 export const ZOOM_WALKING = 1.55;
+
+/** Grenzen für manuellen Zoom (Mausrad am PC, Pinch am Smartphone) */
+export const ZOOM_MIN = 0.5;
+export const ZOOM_MAX = 2.8;

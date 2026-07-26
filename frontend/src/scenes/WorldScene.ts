@@ -5,11 +5,19 @@ import { InputController } from "../game/InputController";
 import { MissionMarker } from "../game/MissionMarker";
 import { StoryDialog } from "../game/StoryDialog";
 import { MapTiles } from "../game/MapTiles";
-import { WorldDecor } from "../game/WorldDecor";
+import { WorldDecor, type ParkedVehicle } from "../game/WorldDecor";
 import { DrivableArea } from "../game/DrivableArea";
 import { MinimapRadar } from "../game/MinimapRadar";
+import { CameraZoomController } from "../game/CameraZoomController";
 import { api, type Mission, type Player } from "../api/client";
-import { lonLatToWorld, MAP_TILE_ZOOM, ZOOM_DRIVING, ZOOM_WALKING } from "../config";
+import {
+  lonLatToWorld,
+  MAP_TILE_ZOOM,
+  ZOOM_DRIVING,
+  ZOOM_WALKING,
+  ZOOM_MIN,
+  ZOOM_MAX,
+} from "../config";
 
 const IS_MOBILE =
   /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) ||
@@ -36,6 +44,19 @@ export class WorldScene extends Phaser.Scene {
   private inVehicle = true;
   private walker: Phaser.GameObjects.Container | null = null;
   private walkAngle = 0;
+
+  private zoomCtrl!: CameraZoomController;
+
+  /** Werkstatt zum Reparieren beschädigter (nicht totalschaden) Fahrzeuge */
+  private workshopPos = lonLatToWorld(9.735, 52.3705);
+  private workshopMarker!: Phaser.GameObjects.Container;
+
+  /** Fahndung: Distanz-Timer bis die Polizei die Verfolgung aufgibt */
+  private policeEscapeTimer = 0;
+  private lastWanted = false;
+
+  /** Fallback, falls nie ein geparktes Fahrzeug in der Nähe ist */
+  private strandedWalkDistance = 0;
 
   constructor() {
     super("WorldScene");
@@ -79,7 +100,7 @@ export class WorldScene extends Phaser.Scene {
       this.driveInput = new InputController(this);
 
       this.cameras.main.startFollow(this.car.sprite, true, 0.12, 0.12);
-      this.cameras.main.setZoom(ZOOM_DRIVING);
+      this.zoomCtrl = new CameraZoomController(this, this.cameras.main, ZOOM_MIN, ZOOM_MAX, ZOOM_DRIVING);
       this.cameras.main.setBackgroundColor("#1a2332");
       this.cameras.main.setRoundPixels(true);
 
@@ -91,6 +112,10 @@ export class WorldScene extends Phaser.Scene {
         Math.abs(se.x - nw.x) + 240,
         Math.abs(se.y - nw.y) + 240
       );
+
+      // Werkstatt an eine befahrbare Stelle snappen, damit man sie auch erreichen kann.
+      this.workshopPos = this.drivable.snapToRoad(this.workshopPos.x, this.workshopPos.y);
+      this.workshopMarker = this.buildWorkshopMarker(this.workshopPos.x, this.workshopPos.y);
 
       this.storyDialog = new StoryDialog(() => {});
       this.scene.launch("UIScene", { player: this.player });
@@ -113,8 +138,10 @@ export class WorldScene extends Phaser.Scene {
         this.radar?.layout();
       });
 
-      // Taste E / Button: Aussteigen
+      // Taste E: Ein-/Aussteigen (auch bei geparkten Fremdfahrzeugen)
       this.input.keyboard?.on("keydown-E", () => this.toggleVehicle());
+      // Taste R: An der Werkstatt reparieren
+      this.input.keyboard?.on("keydown-R", () => this.tryRepairAtWorkshop());
     } catch (err) {
       console.error("WorldScene create failed:", err);
       const { width, height } = this.scale;
@@ -143,54 +170,140 @@ export class WorldScene extends Phaser.Scene {
       }
       this.cameras.main.stopFollow();
       this.cameras.main.startFollow(this.walker, true, 0.15, 0.15);
-      this.tweens.add({
-        targets: this.cameras.main,
-        zoom: ZOOM_WALKING,
-        duration: 400,
-        ease: "Sine.easeInOut",
-      });
+      this.zoomCtrl.jumpTo(ZOOM_WALKING);
       this.showToast("Zu Fuß – nähere Ansicht. E = einsteigen");
       this.events.emit("mode-changed", "walk");
     } else {
-      // Einsteigen – nur in Nähe des Autos
+      // Einsteigen – eigenes Auto bevorzugt, sonst nächstes geparktes Fahrzeug
       if (!this.walker) return;
-      const d = Phaser.Math.Distance.Between(
+      const dOwn = Phaser.Math.Distance.Between(
         this.walker.x,
         this.walker.y,
         this.car.sprite.x,
         this.car.sprite.y
       );
-      if (d > 40) {
-        this.showToast("Näher an dein Auto herangehen");
+      if (!this.car.wrecked && dOwn <= 40) {
+        this.enterVehicle(this.car);
         return;
       }
+
+      const nearby = this.decor.findNearbyParkedVehicle(this.walker.x, this.walker.y, 40);
+      if (nearby) {
+        this.enterParkedVehicle(nearby);
+        return;
+      }
+
       if (this.car.wrecked) {
-        this.showToast("Auto schrottreif – Werkstatt oder neues Auto!");
-        return;
+        this.showToast("Kein Fahrzeug in Reichweite – such ein geparktes Auto/Motorrad!");
+      } else {
+        this.showToast("Näher an ein Fahrzeug herangehen");
       }
-      this.inVehicle = true;
-      this.walker.setVisible(false);
-      this.car.sprite.setAlpha(1);
-      this.cameras.main.stopFollow();
-      this.cameras.main.startFollow(this.car.sprite, true, 0.12, 0.12);
-      this.tweens.add({
-        targets: this.cameras.main,
-        zoom: ZOOM_DRIVING,
-        duration: 400,
-        ease: "Sine.easeInOut",
-      });
-      this.showToast("Eingestiegen");
-      this.events.emit("mode-changed", "drive");
     }
   }
 
+  /** Steigt in das eigene, unbeschädigt genug fahrbereite Auto ein. */
+  private enterVehicle(car: Car) {
+    this.car = car;
+    this.inVehicle = true;
+    this.walker!.setVisible(false);
+    this.car.sprite.setAlpha(1);
+    this.cameras.main.stopFollow();
+    this.cameras.main.startFollow(this.car.sprite, true, 0.12, 0.12);
+    this.zoomCtrl.jumpTo(ZOOM_DRIVING);
+    this.showToast("Eingestiegen");
+    this.events.emit("mode-changed", "drive");
+    this.events.emit("damage-updated", this.car.collisionCount);
+  }
+
+  /** Übernimmt ein geparktes Fremdfahrzeug – das alte (falls fahrbereit) bleibt als neu parkbares Fahrzeug zurück. */
+  private enterParkedVehicle(pv: ParkedVehicle) {
+    if (this.car && !this.car.wrecked) {
+      this.decor.releaseAsParked(this.car);
+    }
+    this.decor.removeParkedVehicle(pv);
+    pv.taken = true;
+    pv.car.sprite.setAlpha(1);
+    this.strandedWalkDistance = 0;
+    this.enterVehicle(pv.car);
+    this.showToast(pv.car.isMotorcycle ? "🏍️ Motorrad übernommen!" : "🚗 Fahrzeug übernommen!");
+  }
+
+  /** Kleiner Schraubenschlüssel-Marker + Reichweitenkreis für die Werkstatt. */
+  private buildWorkshopMarker(x: number, y: number): Phaser.GameObjects.Container {
+    const ring = this.add.circle(0, 0, 40, 0x36c2ff, 0.08).setStrokeStyle(1.5, 0x36c2ff, 0.5);
+    const bg = this.add.circle(0, 0, 12, 0x1a2332, 0.92).setStrokeStyle(2, 0xffd23f);
+    const icon = this.add.text(0, 0, "🔧", { fontSize: "14px" }).setOrigin(0.5);
+    const label = this.add
+      .text(0, 20, "Werkstatt", {
+        fontSize: "10px",
+        color: "#ffd23f",
+        backgroundColor: "#00000066",
+        padding: { x: 4, y: 2 },
+      })
+      .setOrigin(0.5);
+    const container = this.add.container(x, y, [ring, bg, icon, label]).setDepth(14);
+    return container;
+  }
+
+  /** Repariert das aktuelle Auto an der Werkstatt gegen Bezahlung. */
+  tryRepairAtWorkshop() {
+    if (!this.inVehicle || !this.car) return;
+    if (this.car.wrecked) {
+      this.showToast("💀 Totalschaden – hier nicht reparierbar. Neues Fahrzeug suchen!");
+      return;
+    }
+    if (this.car.collisionCount <= 0) {
+      this.showToast("Kein Schaden vorhanden");
+      return;
+    }
+    const d = Phaser.Math.Distance.Between(
+      this.car.position.x,
+      this.car.position.y,
+      this.workshopPos.x,
+      this.workshopPos.y
+    );
+    if (d > 55) {
+      this.showToast("🔧 Zur Werkstatt fahren, dann R drücken");
+      return;
+    }
+    const cost = this.car.collisionCount * 15;
+    if (this.player.cash < cost) {
+      this.showToast(`Nicht genug Geld (${cost}💰 nötig)`);
+      return;
+    }
+    this.player = { ...this.player, cash: this.player.cash - cost };
+    this.car.repair();
+    this.events.emit("player-updated", this.player);
+    this.events.emit("damage-updated", 0);
+    this.showToast(`🔧 Repariert für ${cost}💰`);
+  }
+
+  /** Polizei erwischt den Spieler – Strafzettel gegen Bargeld, Fahndung endet. */
+  private issueTicket() {
+    const fine = 50 + this.car.collisionCount * 5;
+    this.player = { ...this.player, cash: Math.max(0, this.player.cash - fine) };
+    this.decor.clearPolicePursuit();
+    this.policeEscapeTimer = 0;
+    this.events.emit("player-updated", this.player);
+    this.events.emit("wanted-changed", false);
+    this.showToast(`🚔 Strafzettel! -${fine}💰`);
+  }
+
+  private toastHideTimer?: number;
   private showToast(msg: string) {
     const el = document.getElementById("damage-toast");
     if (!el) return;
     el.textContent = msg;
     el.style.display = "block";
-    window.setTimeout(() => {
-      el.style.display = "none";
+    // Reflow erzwingen, damit die CSS-Transition bei erneutem Toast sauber neu startet.
+    void el.offsetWidth;
+    el.classList.add("show");
+    if (this.toastHideTimer) window.clearTimeout(this.toastHideTimer);
+    this.toastHideTimer = window.setTimeout(() => {
+      el.classList.remove("show");
+      window.setTimeout(() => {
+        el.style.display = "none";
+      }, 220);
     }, 2200);
   }
 
@@ -204,15 +317,21 @@ export class WorldScene extends Phaser.Scene {
       const op = other.position;
       const dist = Math.hypot(pos.x - op.x, pos.y - op.y);
       if (dist < this.car.radius + other.radius) {
-        this.collisionCooldown = 0.85;
+        this.collisionCooldown = 0.6;
         const becameWreck = this.car.registerCollision();
         // Abprallen
         const ang = Math.atan2(pos.y - op.y, pos.x - op.x);
         this.car.sprite.x += Math.cos(ang) * 10;
         this.car.sprite.y += Math.sin(ang) * 10;
         this.events.emit("damage-updated", this.car.collisionCount);
-        if (becameWreck) {
-          this.showToast("💥 Auto schrottreif! E = aussteigen, neues Auto suchen");
+
+        // Polizeiauto gerammt -> Fahndung startet
+        if (other.vehicleClass === "police" && !this.decor.hasActivePursuit()) {
+          this.decor.triggerPolicePursuit(pos.x, pos.y);
+          this.events.emit("wanted-changed", true);
+          this.showToast("🚨 Die Polizei nimmt die Verfolgung auf!");
+        } else if (becameWreck) {
+          this.showToast("💥 Auto schrottreif! E = aussteigen, neues Fahrzeug suchen");
         } else if (this.car.collisionCount >= 4) {
           this.showToast(`💨 Rauch! Schaden ${this.car.collisionCount}/10`);
         } else {
@@ -223,8 +342,8 @@ export class WorldScene extends Phaser.Scene {
     }
   }
 
-  /** Neues Spieler-Auto spawnen (nach Totalschaden) */
-  spawnReplacementCar() {
+  /** Notfall-Ersatzwagen, falls partout kein geparktes Fahrzeug in der Nähe zu finden ist. */
+  private spawnReplacementCar() {
     if (!this.walker) return;
     const pos = { x: this.walker.x, y: this.walker.y };
     const snapped = this.drivable.snapToRoad(pos.x, pos.y);
@@ -275,20 +394,25 @@ export class WorldScene extends Phaser.Scene {
         if (vx || vy) this.walkAngle = Math.atan2(vy, vx);
         this.radar?.update(this.walker.x, this.walker.y, this.walkAngle);
 
-        // Ersatzwagen in der Nähe „finden“ wenn wrecked
+        // Notfall-Ersatzwagen nur, wenn wirklich lange kein geparktes Fahrzeug gefunden wurde.
         if (this.car.wrecked) {
-          const d = Phaser.Math.Distance.Between(
-            this.walker.x,
-            this.walker.y,
-            this.car.sprite.x,
-            this.car.sprite.y
-          );
-          // Nach 80px Weg Ersatz spawnen
-          if (d > 80) this.spawnReplacementCar();
+          this.strandedWalkDistance += Math.hypot(vx, vy) * dt;
+          if (this.strandedWalkDistance > 260) {
+            this.strandedWalkDistance = 0;
+            this.spawnReplacementCar();
+          }
         }
       }
 
-      this.decor?.update(dt);
+      // Fahndung: Spieler-Position (egal ob im Auto oder zu Fuß) an den Verkehr weiterreichen,
+      // damit ein verfolgendes Polizeiauto den Spieler auch aussteigen "sieht".
+      const playerPos = this.inVehicle
+        ? this.car.position
+        : this.walker
+          ? { x: this.walker.x, y: this.walker.y }
+          : undefined;
+      this.decor?.update(dt, playerPos);
+      this.updatePursuitState(dt, playerPos);
 
       this.missionRefreshTimer += dt;
       if (this.missionRefreshTimer > (IS_MOBILE ? 20 : 15)) {
@@ -302,6 +426,34 @@ export class WorldScene extends Phaser.Scene {
       }
     } catch (err) {
       console.error("WorldScene update:", err);
+    }
+  }
+
+  /** Prüft, ob die Polizei den Spieler eingeholt hat (Strafzettel) oder aufgibt (Entkommen). */
+  private updatePursuitState(dt: number, playerPos?: { x: number; y: number }) {
+    const wanted = this.decor.hasActivePursuit();
+    if (wanted !== this.lastWanted) {
+      this.lastWanted = wanted;
+      this.events.emit("wanted-changed", wanted);
+    }
+    if (!wanted || !playerPos) {
+      this.policeEscapeTimer = 0;
+      return;
+    }
+    const dist = this.decor.pursuingPoliceDistance(playerPos.x, playerPos.y);
+    if (dist == null) return;
+    if (dist < 26) {
+      this.issueTicket();
+    } else if (dist > 420) {
+      this.policeEscapeTimer += dt;
+      if (this.policeEscapeTimer > 6) {
+        this.policeEscapeTimer = 0;
+        this.decor.clearPolicePursuit();
+        this.showToast("🚓 Die Polizei hat die Verfolgung aufgegeben");
+        this.events.emit("wanted-changed", false);
+      }
+    } else {
+      this.policeEscapeTimer = 0;
     }
   }
 
